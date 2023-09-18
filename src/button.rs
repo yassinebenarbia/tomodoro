@@ -2,10 +2,10 @@ use std::io;
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
 use tui::style::Color;
+use tui::widgets::BorderType;
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders},
 };
-
 use crate::capabilities::compare_rect;
 
 //ToDo: implement default
@@ -85,7 +85,7 @@ impl<'B> Button<'B>{
     pub fn widget(
         mut self, bg: Color, fg: Color, 
         modifier: Modifier, title: String,
-        border: Vec<Borders>
+        borders: Borders
     ) -> Button<'B>{
         self.widget = Block::default()
             .style(
@@ -95,7 +95,8 @@ impl<'B> Button<'B>{
                     .add_modifier(modifier)
             )
             .title(title)
-            .borders(border[0]);
+            .borders(borders)
+            .border_type(BorderType::Rounded);
         self
     }
 

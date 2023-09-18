@@ -1,16 +1,20 @@
-use std::{io, fmt};
+use std::io;
+use crossterm::style::style;
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
 use tui::buffer::{Cell, Buffer};
+use tui::layout::Alignment;
 use tui::style::Color;
-use tui::widgets::StatefulWidget;
+use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
 };
 use crate::capabilities::compare_rect;
 
-//ToDo: implement default
 //ToDo: add layout and style
+//ToDo: make a text struct that will held the text inside the button, if necessery
+//ToDo: add borders feature
+//ToDo: simplify the new method of the StatefullButton
 
 ///   A statefull button
 ///   frame: Rect,
@@ -25,6 +29,8 @@ pub struct StatefullButton<'B> where {
     layout: Rect,
     /// how the button is displayed
     widget: Block<'B>,
+    /// Buttons default style
+    style: Style,
     /// text to be displayed on the button, if anny
     text: Option<String>,
     /// onhover method, will fier whenever the hovered state of the ButtonState state is true
@@ -57,6 +63,7 @@ impl<'B> Default for StatefullButton<'B> {
             frame: terminal.size().unwrap(), 
             layout: Rect::new(1, 1, 1, 1), 
             widget: Block::default(),
+            style: Style::default(),
             text: None,
             onhover: None,
             onclick: None,
@@ -78,6 +85,13 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
         let cell:Cell = Cell {
             symbol: ".".to_string(), fg: Color::Red, bg: Color::Cyan, modifier: Modifier::BOLD 
         };
+
+
+        buf.set_style(
+            self.get_layout(),
+            self.get_style()
+        );
+        // buf.set_style(area, );
 
         if state.clicked {
 
@@ -109,11 +123,6 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
 
             // let mut buffer = Buffer::filled(area, &cell);
 
-            buf.set_style(area, Style::default()
-                .fg(Color::Blue)
-                .bg(Color::Green)
-                .add_modifier(Modifier::BOLD)
-            );
             
             state.clicked = false;
         }
@@ -122,9 +131,7 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
 
 impl<'B> StatefullButton<'B>{
 
-    //ToDo: change the closures implementation of the new method
-    /// returns a StatefullButton instance
-    pub fn new<'b, F>(frame: Rect, layout: Rect, widget: Block<'b>,
+    pub fn new<'b, F>(frame: Rect, layout: Rect, widget: Block<'b>, style: Style,
         onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
         onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
         text: Option<String>
@@ -132,7 +139,7 @@ impl<'B> StatefullButton<'B>{
 
         match compare_rect(&layout, &frame){
             Ok(_)=>{
-                StatefullButton{frame, layout, widget, onclick, onhover, text}
+                StatefullButton{frame, layout, widget, style, onclick, onhover, text}
             },
             Err(msg)=>{
                 panic!("following erro occured with widget {:?}\n{}", layout, msg)
@@ -161,19 +168,24 @@ impl<'B> StatefullButton<'B>{
 
     /// this represent the appearence of the widget
     pub fn widget(
-        mut self, bg: Color, fg: Color, 
-        modifier: Modifier, title: String,
-        border: Vec<Borders>
+        mut self, widgetstyle: Style, borders: Borders,
+         bordertype: BorderType
     ) -> StatefullButton<'B>{
+        // self.widget = Block::default()
+        //     .style(
+        //         widgetstyle
+        //     )
+        //     .borders(borders)
+        //     .border_type(bordertype);
+            // .border_style(borderstyle);
         self.widget = Block::default()
             .style(
                 Style::default()
-                    .fg(fg)
-                    .bg(bg)
-                    .add_modifier(modifier)
             )
-            .title(title)
-            .borders(border[0]);
+            .borders(borders)
+            .title("hello".to_string())
+            .border_type(BorderType::Rounded);
+
         self
     }
 
@@ -203,14 +215,18 @@ impl<'B> StatefullButton<'B>{
     }
 
     /// returns a clone of the button's widget
-    pub fn get_widget(&mut self) ->Block<'B>{
+    pub fn get_widget(& self) ->Block<'B>{
         self.widget.clone()
     }
 
     /// returns a clone of the button's layout
-    pub fn get_layout(&mut self)->Rect{
+    pub fn get_layout(& self)->Rect{
         self.layout.clone()
     }
+    pub fn get_style(& self) ->Style{
+        self.style.clone()
+    }
+
 
 }
 

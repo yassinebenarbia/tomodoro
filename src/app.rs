@@ -1,8 +1,8 @@
 use tui::{
     backend::{Backend},
-    widgets::{Block, Borders, ListState, ListItem, List,},
-    layout::{Layout, Constraint, Direction, Rect, self},
-    Frame, style::{Style, Color, Modifier}, buffer::{self, Buffer, Cell},
+    widgets::{Block, Borders, BorderType},
+    layout::Rect,
+    Frame, style::{Style, Color, Modifier}, buffer::Buffer,
 };
 use crate::{stateful_button::{StatefullButton, ButtonState}, button::Button};
 
@@ -38,7 +38,7 @@ pub fn ui<B: Backend>(f: &mut Frame<B>) {
     let mut button2 = Button::default()
         .widget(
             Color::LightRed, Color::LightMagenta, Modifier::BOLD,
-            String::from("stuff"), vec![Borders::NONE]
+            String::from("stuff"), Borders::ALL
         ).layout(1, 1, 10, 10);
 
     // println!("{:?}", button2.get_layout());
@@ -75,10 +75,19 @@ pub fn ui<B: Backend>(f: &mut Frame<B>) {
                 println!("hovered");
     };
 
-    let mut button: StatefullButton<> = StatefullButton::default()
+    let mut button: StatefullButton = StatefullButton::default()
+        .layout(40, 10, 10, 10)
+        .widget(
+            Style::default()
+                .fg(Color::Blue)
+                .bg(Color::Magenta)
+                .add_modifier(Modifier::BOLD | Modifier::ITALIC),
+            Borders::ALL,
+            BorderType::Rounded
+        )
         .onhover(&mut onhover)
         .onclick(&mut onclick)
-        .text("Hello World!".to_string());
+        .text("some".to_string());
 
     let layout = button.get_layout().clone();
     // desired behavior
