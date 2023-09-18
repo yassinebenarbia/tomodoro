@@ -69,25 +69,24 @@ pub fn ui<B: Backend>(f: &mut Frame<B>) {
     // println!("{:?}", list);
 
     let mut onhover = |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{
-                println!("hovered");
+        //unimplemented!()
     };
     let mut onclick= |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{
-                println!("hovered");
+        // unimplemented!()
     };
 
     let mut button: StatefullButton = StatefullButton::default()
-        .layout(40, 10, 10, 10)
+        .layout(1, 1, 5, 5)
         .widget(
             Style::default()
-                .fg(Color::Blue)
-                .bg(Color::Magenta)
-                .add_modifier(Modifier::BOLD | Modifier::ITALIC),
+                .bg(Color::Blue)
+                .fg(Color::Red),
             Borders::ALL,
             BorderType::Rounded
         )
         .onhover(&mut onhover)
-        .onclick(&mut onclick)
-        .text("some".to_string());
+        .onclick(&mut onclick);
+        // .text("some".to_string());
 
     let layout = button.get_layout().clone();
     // desired behavior
