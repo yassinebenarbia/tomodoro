@@ -7,6 +7,7 @@ use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
 };
+use crate::button_style::ButtonWidget;
 use crate::capabilities::compare_rect;
 
 //ToDo: add layout and style
@@ -29,9 +30,7 @@ pub struct StatefullButton<'B> where {
     ///ToDo: change the name and the type, such that
     ///the new type implements the Widget trait, and can give access to
     ///it's style
-    widget: Block<'B>,
-    /// text to be displayed on the button, if anny
-    text: Option<String>,
+    widget: ButtonWidget<'B>,
     /// onhover method, will fier whenever the hovered state of the ButtonState state is true
     onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
     /// onclick method, will fier whenever the clicked state of the ButtonState state is true
@@ -61,8 +60,7 @@ impl<'B> Default for StatefullButton<'B> {
         StatefullButton{
             frame: terminal.size().unwrap(), 
             layout: Rect::new(1, 1, 1, 1), 
-            widget: Block::default(),
-            text: None,
+            widget: ButtonWidget::default(),
             onhover: None,
             onclick: None,
         }
@@ -85,13 +83,67 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
         };
 
 
-        println!("{:?}////{:?}", self.get_style(), self.get_layout());
+        // println!("{:?}////{:?}", self.get_style(), self.get_layout());
 
         buf.set_style(
             self.get_layout(),
-            self.get_style()
+            self.get_widget().style
         );
-        // buf.set_style(area, );
+
+        let symbols = BorderType::line_symbols(self.widget.border_type);
+
+        //borders
+        if self.widget.borders.intersects(Borders::LEFT) {
+            for y in area.top()..area.bottom() {
+                buf.get_mut(area.left(), y)
+                    .set_symbol(symbols.vertical)
+                    .set_style(self.widget.border_style);
+            }
+        }
+        if self.widget.borders.intersects(Borders::TOP) {
+            for x in area.left()..area.right() {
+                buf.get_mut(x, area.top())
+                    .set_symbol(symbols.horizontal)
+                    .set_style(self.widget.border_style);
+            }
+        }
+        if self.widget.borders.intersects(Borders::RIGHT) {
+            let x = area.right() - 1;
+            for y in area.top()..area.bottom() {
+                buf.get_mut(x, y)
+                    .set_symbol(symbols.vertical)
+                    .set_style(self.widget.border_style);
+            }
+        }
+        if self.widget.borders.intersects(Borders::BOTTOM) {
+            let y = area.bottom() - 1;
+            for x in area.left()..area.right() {
+                buf.get_mut(x, y)
+                    .set_symbol(symbols.horizontal)
+                    .set_style(self.widget.border_style);
+            }
+        }
+
+        if self.widget.borders.contains(Borders::RIGHT | Borders::BOTTOM) {
+            buf.get_mut(area.right() - 1, area.bottom() - 1)
+                .set_symbol(symbols.bottom_right)
+                .set_style(self.widget.border_style);
+        }
+        if self.widget.borders.contains(Borders::RIGHT | Borders::TOP) {
+            buf.get_mut(area.right() - 1, area.top())
+                .set_symbol(symbols.top_right)
+                .set_style(self.widget.border_style);
+        }
+        if self.widget.borders.contains(Borders::LEFT | Borders::BOTTOM) {
+            buf.get_mut(area.left(), area.bottom() - 1)
+                .set_symbol(symbols.bottom_left)
+                .set_style(self.widget.border_style);
+        }
+        if self.widget.borders.contains(Borders::LEFT | Borders::TOP) {
+            buf.get_mut(area.left(), area.top())
+                .set_symbol(symbols.top_left)
+                .set_style(self.widget.border_style);
+        }
 
         if state.clicked {
 
@@ -108,38 +160,23 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
                 }
                 None=>{}
             }
-
-            match self.text {
-                Some(text)=>{
-                    buf.set_string(x_mid, y_mid, text, 
-                        Style::default()
-                            .fg(Color::White)
-                            .bg(Color::Black)
-                            .add_modifier(Modifier::BOLD)
-                    );
-                }
-                None=>{}
-            }
-
-            // let mut buffer = Buffer::filled(area, &cell);
-
             
             state.clicked = false;
         }
+
     }
 }
 
 impl<'B> StatefullButton<'B>{
 
-    pub fn new<'b, F>(frame: Rect, layout: Rect, widget: Block<'b>,
+    pub fn new<'b, F>(frame: Rect, layout: Rect, widget: ButtonWidget<'b>,
         onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
         onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
-        text: Option<String>
     )-> StatefullButton<'b>{
 
         match compare_rect(&layout, &frame){
             Ok(_)=>{
-                StatefullButton{frame, layout, widget,  onclick, onhover, text}
+                StatefullButton{frame, layout, widget,  onclick, onhover}
             },
             Err(msg)=>{
                 panic!("following erro occured with widget {:?}\n{}", layout, msg)
@@ -168,30 +205,21 @@ impl<'B> StatefullButton<'B>{
 
     /// this represent the appearence of the widget
     pub fn widget(
-        mut self, widgetstyle: Style, borders: Borders, bordertype: BorderType
+        mut self, widget: ButtonWidget<'B>
     ) -> StatefullButton<'B>{
-
-        println!("{:?}",widgetstyle);
-        self.widget = Block::default()
-            .style(
-                widgetstyle
-            );
-            // .borders(borders);
-            // .border_type(BorderType::Rounded);
-
+        self.widget = widget;
         self
     }
+
+    /// under development
     pub fn style(mut self, widgetstyle: Style) -> StatefullButton<'B>{
         // self.style = widgetstyle;
         self
     }
 
+    /// UnderDevelopment
     /// sets the text of the widget
-    pub fn text(mut self, text: String) -> StatefullButton<'B> {
-        self.text = Some(text);
-        self
-
-    }
+    pub fn text(mut self, text: String) -> StatefullButton<'B> {self}
 
     pub fn onclick<T>(mut self, onclick: &'B mut T) -> StatefullButton<'B> where
         T: FnMut(Rect, &mut Buffer, &mut ButtonState)
@@ -212,9 +240,7 @@ impl<'B> StatefullButton<'B>{
     }
 
     /// returns a clone of the button's widget
-    pub fn get_widget(& self) ->Block<'B>{
-        let x = self.widget.clone();
-        println!("widget to clone {:?}", x);
+    pub fn get_widget(& self) ->ButtonWidget<'B>{
         self.widget.clone()
     }
 
@@ -223,11 +249,9 @@ impl<'B> StatefullButton<'B>{
         self.layout.clone()
     }
 
-    pub fn get_style(& self) ->Style{
-        // self.style.clone()
-        Style::default()
-    }
-
+    // pub fn get_style(& self) ->Style{
+    //     // Style::default()
+    // }
 
 }
 

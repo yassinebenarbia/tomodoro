@@ -11,6 +11,7 @@ use crossterm::{
 use crossterm::terminal::LeaveAlternateScreen;
 use crossterm::terminal::EnterAlternateScreen;
 
+mod button_style;
 mod stateful_button;
 mod button;
 mod app;

@@ -1,0 +1,12 @@
+ButtonWidget::default()
+            .style(
+                Style::default()
+                    .fg(fg)
+                    .bg(bg)
+                    .add_modifier(modifier)
+            )
+            .borders(borders)
+            .title(title)
+            .border_type(bordertype);
+
+
