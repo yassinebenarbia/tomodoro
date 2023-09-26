@@ -81,7 +81,6 @@ impl App {
         // //     }
         // // }
 
-        Block::default().title("hello");
         let timer:Timer = Timer::default()
             .layout(10, 10, 40, 7)
             .widget(
@@ -94,7 +93,7 @@ impl App {
                     .borders(Borders::ALL)
                     .border_type(BorderType::Double)
             )
-            .time(Duration::from_secs(10));
+            .time(Duration::from_secs(1501));
 
         let timer_layout = timer.layout.clone();
 

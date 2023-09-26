@@ -1,6 +1,11 @@
-use tui::{style::Style, widgets::{Borders, BorderType, Block}, text::Spans};
+use tui::{style::Style, widgets::{Borders, BorderType, Block}};
 
 #[derive(Debug, Clone)]
+/// this widget represent a timer widget as it holds:
+/// Widget Style
+/// Borders
+/// Borders Style
+/// Borders Type
 pub struct TimerWidget {
     
     /// Widget style
