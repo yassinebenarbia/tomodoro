@@ -1,7 +1,9 @@
 use std::fmt::Alignment;
-
-use tui::{widgets::{Widget, Borders, BorderType}, text::Spans, style::Style};
-
+use tui::{
+    widgets::{Widget, Borders, BorderType},
+    text::Spans,
+    style::Style
+};
 
 #[derive(Debug,Clone)]
 pub struct ButtonWidget<'a> {
@@ -20,7 +22,6 @@ pub struct ButtonWidget<'a> {
     /// Widget style
     pub style: Style,
 }
-
 
 impl<'a> ButtonWidget<'a> {
 

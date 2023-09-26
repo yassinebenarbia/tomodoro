@@ -7,7 +7,7 @@ use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
 };
-use crate::button_style::ButtonWidget;
+use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
 
 //ToDo: add layout and style
@@ -265,11 +265,11 @@ impl ButtonState {
     pub fn new(hovered: bool, clicked: bool) -> ButtonState {
         ButtonState{hovered, clicked}
     }
-    pub fn clicked(& self){
-        self.clicked == true;
+    pub fn clicked(& self) -> bool{
+        self.clicked
     }
-    pub fn hovered(& self){
-        self.hovered == true;
+    pub fn hovered(& self) -> bool{
+        self.hovered 
     }
     pub fn set_hover_state(&mut self, state: bool){
         self.hovered = state;
