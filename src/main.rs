@@ -2,6 +2,7 @@ use std::io;
 
 use app::App;
 
+mod frame_util;
 mod statefull_timer;
 mod timer_state; 
 mod timer_widget;

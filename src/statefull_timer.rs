@@ -1,5 +1,5 @@
 use std::{
-    time::{Duration, self, SystemTime}, io
+    time::{Duration, self, SystemTime}, io::{self, Write}, fs, os::linux::raw::stat
 };
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
@@ -8,7 +8,7 @@ use tui::{
 use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState};
 
 pub struct Timer{
-    /// The duration from which the timer should count
+    /// The Counting duration
     pub time: Duration,
     /// Frame
     pub frame: Rect,
@@ -111,7 +111,7 @@ impl StatefulWidget for Timer {
         }
 
         //TODO: move this call out of the rendering loop
-        let time = time_conversion(self.time);
+        let time = time_conversion(state.displayed);
 
         let time = Spans::from(vec![
             Span::styled(time, Style::default().fg(Color::Yellow))
@@ -143,10 +143,10 @@ impl StatefulWidget for Timer {
 
         buf.set_spans(time_x, time_y, &time, time_area_width);
 
-        // difference between the current time and the started time as a second
-        let diff = SystemTime::now().duration_since(state.start).expect("unable to manage time").as_secs();
+        state.manage_state();
 
     }
+
 }
 
 impl Timer {

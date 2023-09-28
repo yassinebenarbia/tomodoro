@@ -2,7 +2,7 @@ use std::{time::{Duration, Instant}, io, error::Error, fmt::Alignment};
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders, BorderType, Block},
+    widgets::{Borders, BorderType},
     layout::Rect,
     Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
 };
@@ -31,7 +31,7 @@ impl App {
 
     pub fn ui<B: Backend>(f: &mut Frame<B>, timerstate: &mut TimerState) {
 
-        let mut button2 = Button::default()
+        let button2 = Button::default()
             .widget(
                 Color::LightRed, Color::LightMagenta, Modifier::BOLD,
                 String::from("stuff"), Borders::ALL
@@ -96,6 +96,7 @@ impl App {
                     .border_type(BorderType::Double)
             )
             .time(Duration::from_secs(1501));
+
         // desired behavior
         // .on_clock_tick() // here the closure should take 
         // an instance of self, the Rectangle, the Buffer, and the BufferState respectively
@@ -143,7 +144,9 @@ impl App {
         //     }
         // }
 
-        let mut timerstate: TimerState = TimerState::default();
+        let mut timerstate: TimerState = TimerState::default()
+            // .duration(Duration::from_secs(10))
+            .displayed(Duration::from_secs(10));
 
         loop {
 
