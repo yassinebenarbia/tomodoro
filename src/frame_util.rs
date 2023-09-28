@@ -15,6 +15,7 @@ impl Default for FrameManager {
     }
     
 }
+
 impl FrameManager {
 
     pub fn prev_diff(&mut self, prev_diff: Duration)->FrameManager{

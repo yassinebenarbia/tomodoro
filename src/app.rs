@@ -145,7 +145,7 @@ impl App {
         // }
 
         let mut timerstate: TimerState = TimerState::default()
-            // .duration(Duration::from_secs(10))
+            .duration(Duration::from_secs(10))
             .displayed(Duration::from_secs(10));
 
         loop {
