@@ -10,10 +10,11 @@ use tui::{
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
 
-//ToDo: add layout and style
-//ToDo: make a text struct that will held the text inside the button, if necessery
-//ToDo: add borders feature
-//ToDo: simplify the new method of the StatefullButton
+//TODO: add layout and style
+//TODO: make a text struct that will held the text inside the button, if necessery
+//TODO: add borders feature
+//TODO: simplify the new method of the StatefullButton
+//TODO: let the onclick and on hover closures take an instance of self as a parameter
 
 ///   A statefull button
 ///   frame: Rect,
@@ -31,9 +32,9 @@ pub struct StatefullButton<'B> where {
     ///the new type implements the Widget trait, and can give access to
     ///it's style
     widget: ButtonWidget<'B>,
-    /// onhover method, will fier whenever the hovered state of the ButtonState state is true
+    /// onhover closure, will fier whenever the hovered state of the ButtonState state is true
     onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
-    /// onclick method, will fier whenever the clicked state of the ButtonState state is true
+    /// onclick closure, will fier whenever the clicked state of the ButtonState state is true
     onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 }
 //  the Default implementation
@@ -82,9 +83,7 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
             symbol: ".".to_string(), fg: Color::Red, bg: Color::Cyan, modifier: Modifier::BOLD 
         };
 
-
-        // println!("{:?}////{:?}", self.get_style(), self.get_layout());
-
+        // buffer style
         buf.set_style(
             self.get_layout(),
             self.get_widget().style

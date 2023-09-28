@@ -1,4 +1,4 @@
-use std::{time::{Duration, Instant}, io, error::Error};
+use std::{time::{Duration, Instant}, io, error::Error, fmt::Alignment};
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
 use tui::{
     backend::{Backend, CrosstermBackend},
@@ -19,7 +19,7 @@ fn get_block<'a>(title: String) -> ButtonWidget<'a>{
             .fg(Color::Red).bg(Color::Cyan)
             .add_modifier(Modifier::BOLD | Modifier::ITALIC)
         )
-        .title(title.clone())
+        .title(title.clone()).title_alignment(Alignment::Center)
         .borders(Borders::ALL);
 }
 
@@ -54,6 +54,7 @@ impl App {
                     )
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded)
+                    .title("some title".to_string())
             )
             .onhover(&mut onhover)
             .onclick(&mut onclick);
@@ -67,6 +68,7 @@ impl App {
             layout,
             &mut state
         );
+
 
         // // desired behavior
         // // let app = App::new();
@@ -94,6 +96,13 @@ impl App {
                     .border_type(BorderType::Double)
             )
             .time(Duration::from_secs(1501));
+        // desired behavior
+        // .on_clock_tick() // here the closure should take 
+        // an instance of self, the Rectangle, the Buffer, and the BufferState respectively
+        // where as this will run every second
+        // .on_idle_state() // same goes for this
+        // this will run whenever the timer reaches 0
+        // NOTE: This conditions where should the closures run, is checked on the mail loop
 
         let timer_layout = timer.layout.clone();
 
@@ -135,6 +144,7 @@ impl App {
         // }
 
         let mut timerstate: TimerState = TimerState::default();
+
         loop {
 
             terminal.draw(|f| {
@@ -189,3 +199,4 @@ impl Default for App{
         }
     }
 }
+

@@ -1,5 +1,5 @@
 use std::{
-    time::Duration, io
+    time::{Duration, self, SystemTime}, io
 };
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
@@ -110,7 +110,7 @@ impl StatefulWidget for Timer {
                 .set_style(self.widget.border_style);
         }
 
-        //TODO: move this out of the rendering loop
+        //TODO: move this call out of the rendering loop
         let time = time_conversion(self.time);
 
         let time = Spans::from(vec![
@@ -142,6 +142,10 @@ impl StatefulWidget for Timer {
         let time_y = area.top() + time_dy;
 
         buf.set_spans(time_x, time_y, &time, time_area_width);
+
+        // difference between the current time and the started time as a second
+        let diff = SystemTime::now().duration_since(state.start).expect("unable to manage time").as_secs();
+
     }
 }
 
