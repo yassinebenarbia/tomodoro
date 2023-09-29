@@ -17,6 +17,8 @@ pub struct TimerState{
     pub cycles: u16,
     /// maximum number of cycles
     pub max_cycles: u16,
+
+    pub prev_diff: u16,
 }
 
 impl Default for TimerState {
@@ -27,6 +29,7 @@ impl Default for TimerState {
             start: SystemTime::now(),
             displayed: Duration::from_secs(1500),
             cycles: 0,
+            prev_diff: 0,
             max_cycles: 5,
             util: FrameManager::default(),
         }
@@ -100,16 +103,25 @@ impl TimerState {
         self.max_cycles
     }
 
+    pub fn prev_diff<'a>(&'a mut self, prev_diff: u16) -> TimerState{
+        self.prev_diff = prev_diff;
+        *self
+    }
+
     pub fn manage_state(&mut self){
 
         // difference between the current time and the started time as a second
-        let mut diff = SystemTime::now()
+
+        let mut raw_diff = SystemTime::now()
             .duration_since(self.start)
             .expect("unable to manage time")
             .as_secs();
 
+        let mut diff = raw_diff;
+
         // meaning that time has advanced since the beginning of the counter
         // need to do a modulo opperation to get the number of cycles
+
         if diff > 0 {
 
             if self.util.prev_diff.as_secs() < diff {
@@ -125,12 +137,22 @@ impl TimerState {
             }
 
             // thus a full cycle is completed
-            // if diff == self.duration.as_secs() {
-            //
-            //     self.displayed(self.duration);
-            //
-            //     
-            // }
+            if diff == self.duration.as_secs() - 1 && self.prev_diff < raw_diff as u16 {
+
+                self.prev_diff = raw_diff as u16;
+
+                // another check, to know wether or not the 
+                // previous call is different or not from the current
+
+                self.inc_cycle(1);
+
+                let mut f = File::create("thing.txt")
+                    .expect("Couldn't create File");
+                f.write(self.get_cycle().to_string().as_bytes())
+                    .expect("Couldn't write to file");
+
+                
+            }
 
 
         }

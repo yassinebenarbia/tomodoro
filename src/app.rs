@@ -2,8 +2,8 @@ use std::{time::{Duration, Instant}, io, error::Error, fmt::Alignment};
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders, BorderType},
-    layout::Rect,
+    widgets::{Borders, BorderType, Block},
+    layout::{Rect, Layout},
     Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
 };
 use crate::{
@@ -44,7 +44,7 @@ impl App {
         let mut onclick= |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
 
         let button: StatefullButton = StatefullButton::default()
-            .layout(70, 15, 40, 7)
+            .layout(75, 25, 40, 6)
             .widget(
                 ButtonWidget::default()
                     .style(
@@ -84,7 +84,7 @@ impl App {
         // // }
 
         let timer:Timer = Timer::default()
-            .layout(10, 10, 40, 7)
+            .layout(70, 10, 50, 8)
             .widget(
                 TimerWidget::default()
                     .style(
@@ -117,6 +117,16 @@ impl App {
         // f.render_widget(Timer, Timer_area);
         // f.render_widget(Wall, Wall_area);
         // f.render_widget(Button, Button_area);
+        let cycles_display = Block::default()
+            .title(timerstate.get_cycle().to_string())
+            .style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .bg(Color::Red)
+            );
+
+        f.render_widget(cycles_display, Rect::new(140 , 20, 10 , 1));
+
     }
 
     pub fn run(mut self) -> Result<(), Box<dyn Error>>{
