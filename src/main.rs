@@ -2,6 +2,8 @@ use std::io;
 
 use app::App;
 
+mod displayable;
+mod screen;
 mod widget_fixer;
 mod state_displayer;
 mod frame_util;

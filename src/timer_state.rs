@@ -2,6 +2,9 @@ use std::{time::{Duration, SystemTime}, fs::File, io::Write};
 
 use crate::frame_util::FrameManager;
 
+/// This resemble the state of the timer, meaning that the behavior 
+/// of the shown timer, e.g number of cycles, cycle length, starting time,
+/// the displayed time at the start, etc
 #[derive(Debug, Clone, Copy)]
 pub struct TimerState{
     /// the duration for each pomodoro, in seconds unit

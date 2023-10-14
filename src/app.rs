@@ -1,14 +1,16 @@
-use std::{time::{Duration, Instant}, io, error::Error, fmt::Alignment};
+use std::{time::{Duration, Instant}, io::{self, Write}, error::Error, fmt::Alignment, fs::File, rc::Rc};
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders, BorderType, Block},
+    widgets::{Borders, BorderType, Block, StatefulWidget},
     layout::{Rect, Layout},
     Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
 };
 use crate::{
     stateful_button::{StatefullButton, ButtonState}
-    , button::Button, button_widget::ButtonWidget, statefull_timer::Timer, timer_widget::TimerWidget, timer_state::TimerState
+    ,button::Button, button_widget::ButtonWidget, statefull_timer::Timer,
+    timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
+    displayable::Displayable, screen::Screen
 };
 
 /// widget
@@ -23,13 +25,60 @@ fn get_block<'a>(title: String) -> ButtonWidget<'a>{
         .borders(Borders::ALL);
 }
 
+#[derive(Debug, Clone)]
+pub struct Dumy{
+    x: u16,
+    y: u16,
+}
+impl Dumy {
+    pub fn new(x: u16, y: u16) -> Dumy {
+        Dumy { x, y }
+    }
+    
+}
+
+impl StatefulWidget for Dumy {
+
+    type State = u16;
+    fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
+        
+    }
+    
+}
+
+impl Displayable for Dumy {
+    fn x(&self) -> u16 {
+        self.x
+    }
+
+    fn y(&self) -> u16 {
+        self.y
+    }
+
+    fn width(&self) -> u16 {
+        0
+    }
+
+    fn height(&self) -> u16 {
+        0
+    }
+
+    fn highlight(&self) {
+        
+    }
+}
+
 pub struct App {
     state: TimerState
 }
 
 impl App {
 
-    pub fn ui<B: Backend>(f: &mut Frame<B>, timerstate: &mut TimerState) {
+    // TODO: set the ui such that it can have mutable and immutable reference to f simultaniously,
+    // if possible
+    pub fn ui<'a ,B: Backend>(f: & mut Frame<'a ,B>, timerstate: &mut TimerState) {
+
+        let mut fixer = Fixer::new(f);
 
         let button2 = Button::default()
             .widget(
@@ -44,7 +93,7 @@ impl App {
         let mut onclick= |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
 
         let button: StatefullButton = StatefullButton::default()
-            .layout(75, 25, 40, 6)
+            .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
             .widget(
                 ButtonWidget::default()
                     .style(
@@ -63,11 +112,6 @@ impl App {
 
         let mut state:ButtonState = ButtonState::new(true, true);
 
-        f.render_stateful_widget(
-            button,
-            layout,
-            &mut state
-        );
 
 
         // // desired behavior
@@ -84,7 +128,7 @@ impl App {
         // // }
 
         let timer:Timer = Timer::default()
-            .layout(70, 10, 50, 8)
+            .layout(fixer.xratio(40), fixer.yratio(30), fixer.wratio(10), fixer.hratio(10))
             .widget(
                 TimerWidget::default()
                     .style(
@@ -107,11 +151,6 @@ impl App {
 
         let timer_layout = timer.layout.clone();
 
-        f.render_stateful_widget(
-            timer,
-            timer_layout,
-            timerstate,
-        );
 
         // f.render_widget(get_block(String::from("hello")), Rect::new(10, 10, 5, 5));
         // f.render_widget(Timer, Timer_area);
@@ -125,7 +164,20 @@ impl App {
                     .bg(Color::Red)
             );
 
-        f.render_widget(cycles_display, Rect::new(140 , 20, 10 , 1));
+        f.render_widget(cycles_display, Rect::new(fixer.xratio(90) , fixer.yratio(1), fixer.wratio(5) , fixer.hratio(3)));
+
+        f.render_stateful_widget(
+            button,
+            layout,
+            &mut state
+        );
+
+        f.render_stateful_widget(
+            timer,
+            timer_layout,
+            timerstate,
+        );
+
 
     }
 
@@ -157,6 +209,15 @@ impl App {
         let mut timerstate: TimerState = TimerState::default()
             .duration(Duration::from_secs(10))
             .displayed(Duration::from_secs(10));
+
+        // desired behavior
+        // let app = App::create(config_path);
+        // loop {
+        //  app.draw();
+        // }
+        let dumy = Dumy::new(1, 1);
+        let dumy1 = Dumy::new(4, 9);
+        let screen = Screen::new(vec![dumy, dumy1]);
 
         loop {
 
@@ -212,4 +273,3 @@ impl Default for App{
         }
     }
 }
-
