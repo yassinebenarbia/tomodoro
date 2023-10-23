@@ -147,7 +147,9 @@ impl<'a, B: Backend> Fixer<'a, B> {
     }
 
 }
+
 mod Test{
+    #[ignore]
     #[test]
     fn eq_ratios() {
         unimplemented!();

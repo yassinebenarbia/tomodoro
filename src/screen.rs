@@ -17,7 +17,7 @@ use crate::displayable::Displayable;
 // the screen will be only concerned about the statefull widgets, since we can
 // have a statefull widget that behave like stateless one, and not the other
 // way around
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct WidgetWrapper<'a, T: Displayable>{
     wrapped: T,
     up: Option<&'a T>,
@@ -31,16 +31,18 @@ struct WidgetWrapper<'a, T: Displayable>{
 ///  - change the selected widget using a defined api of methods as dow(),
 /// up(), right() and left()
 /// - retrive the selected widget using the selected() method
-pub struct Screen<T: Displayable + Debug + Clone> {
-    widgets: Vec<T>
+pub struct Screen<'w ,T: Displayable + Debug + Clone> {
+    widgets: Vec<T>, 
+    selected: &'w T
 }
 
-impl<T> Screen<T>  where
-    T: Displayable + Clone + Debug 
+impl<'w, T> Screen<'w ,T>  where
+    T: Displayable + Clone + Debug + 'w
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets: Vec<T>){
+    pub fn new(widgets: Vec<T>){ 
+
         // here is the logic respobsible for seting up the widgets
         let mut x_widgets: Vec<T> = vec![];
         let mut y_widgets: Vec<T> = vec![];
@@ -68,6 +70,7 @@ impl<T> Screen<T>  where
         });
 
 
+        // wrappers vector
         let mut wrv: Vec<WidgetWrapper<T>> = vec![];
         // needs to determine the left, right, up and down widgets of each 
         // widget and then put them inside the widget wrapper vector wrv
@@ -76,15 +79,25 @@ impl<T> Screen<T>  where
         }else {
             wrv = self::Screen::orderw(&x_widgets, &y_widgets)
         }
-
+        
     }
 
     /// this is used to make a matrix of WidgetWrapper where as
     /// each widget will be sorted with their x and y indecies
     /// NOTE: this will take tow vectors of length 1
     fn orderw_one<'a>(x_widgets:&'a Vec<T>,y_widgets:&'a Vec<T>) -> Vec<WidgetWrapper<'a, T>>{
-        let toreturn: Vec<WidgetWrapper<T>> = vec![];
-        println!("unimplemented!()");
+        let mut toreturn: Vec<WidgetWrapper<T>> = vec![];
+
+        toreturn.push(
+            WidgetWrapper{
+                wrapped: x_widgets[0].clone(),
+                right: None,
+                left: None,
+                down: None,
+                up: None,
+            }
+        );
+
         toreturn
     }
 
@@ -96,26 +109,43 @@ impl<T> Screen<T>  where
         let mut toreturn: Vec<WidgetWrapper<'a, T>> = vec![];
         let mut temp = vec![];
         let mut ypos = 0;
-        for i in 0..x_widgets.len()-1{
 
-            // the position of x_widgets[i] in y_widgets
+        for i in 0..x_widgets.len(){
+
+            // the position of x_widgets[i] in y_widgets, with no repeat
+            // meaning if there are two identical widgets, we will get first than the later
             for j in  0..y_widgets.len(){
 
+                // comparing widgets with respect to x value
                 let cx = x_widgets[i].x().cmp(&x_widgets[j].x());
+                // comparing widgets with respect to y value
                 let cy = x_widgets[i].y().cmp(&x_widgets[j].y());
+
                 let cond = match temp.iter().position(|&v|{return v==j}) {
                     Some(x) => true,
                     None => false,
                 };
 
-                if cx.is_eq() && cy.is_eq() && cond  & cond{
+                // cond == false, meaning that the current y_widget is not found
+                // in the temp vector
+                if cx.is_eq() && cy.is_eq() && cond == false{
                     ypos = j;
                     break;
                 }
-            }
-            temp.push(ypos);
-            println!("{}", ypos);
+                // if j == y_widget.len() {
+                //      flag = true;
+                // }
 
+            }
+
+            // if flag == true {
+            //      panic!("widget in the x_widgets is not found in the y_widget");
+            // }
+
+            // temp will hold the position of the detected y_widget
+            temp.push(ypos);
+
+            // NOTE: x_widgets and y_widget are sorted with the x and y vlaue respectively
             if i == 0 {
 
                 // we are guaranteed that the next widget in the y_widgets exist
@@ -134,7 +164,7 @@ impl<T> Screen<T>  where
                     
                 // we are guaranteed that the previous widget in the y_widgets exist
                 // since the length of it is greater than 1
-                }else if ypos == y_widgets.len() {
+                }else if ypos == y_widgets.len()-1 {
 
                     toreturn.push(
                         WidgetWrapper{
@@ -160,8 +190,8 @@ impl<T> Screen<T>  where
                     
                 }
                 
-            } if i == x_widgets.len() -1 {
-                
+            }else if i == x_widgets.len() - 1 {
+                                
                 if ypos == 0 {
 
                     toreturn.push(
@@ -249,8 +279,8 @@ impl<T> Screen<T>  where
 
     pub fn load_conf(){}
 
-    pub fn selected() -> T{
-       unimplemented!() 
+    pub fn selected(&self) -> &T{
+        self.selected
     }
 
     pub fn up(){}
@@ -258,4 +288,28 @@ impl<T> Screen<T>  where
     pub fn right(){}
     pub fn left(){}
     
+}
+
+mod Test{
+
+    use crate::app::Dumy;
+
+    use super::Screen;
+
+
+    #[test]
+    fn should_sort() {
+
+        // desired behavior
+        // let app = App::create(config_path);
+        // loop {
+        //  app.draw();
+        // }
+        let dumy = Dumy::new(1, 1);
+        let dumy1 = Dumy::new(4, 9);
+        let dumy2 = Dumy::new(9, 9);
+        let screen = Screen::new(vec![dumy, dumy1, dumy2]);
+        
+    }
+
 }

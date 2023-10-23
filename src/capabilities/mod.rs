@@ -48,17 +48,20 @@ mod Test{
 
     use super::time_conversion;
 
-use std::time::SystemTime;
+    use std::time::SystemTime;
 
     #[test]
     fn time_conversion_succeed() {
+
         assert_eq!("00:00".to_string(), time_conversion(Duration::from_millis(10)));
         assert_eq!("00:10".to_string(), time_conversion(Duration::from_secs(10)));
         assert_eq!("01:40".to_string(), time_conversion(Duration::from_secs(100)));
         assert_eq!("25:00".to_string(), time_conversion(Duration::from_secs(1500)));
     }
+
     #[test]
     fn test2() {
+
         let sys_time = SystemTime::now();
         sleep(Duration::from_secs(1));
         let new_sys_time = SystemTime::now();
