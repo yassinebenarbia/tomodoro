@@ -1,4 +1,4 @@
-use std::{fmt::Debug, cmp::Ordering};
+use std::{fmt::Debug, cmp::Ordering, rc::Rc};
 use crate::displayable::Displayable;
 
 // question:
@@ -31,9 +31,9 @@ struct WidgetWrapper<'a, T: Displayable>{
 ///  - change the selected widget using a defined api of methods as dow(),
 /// up(), right() and left()
 /// - retrive the selected widget using the selected() method
-pub struct Screen<'w ,T: Displayable + Debug + Clone> {
-    widgets: Vec<T>, 
-    selected: &'w T
+pub struct Screen<'w, T: Displayable + Debug + Clone> {
+    widgets: Vec<WidgetWrapper<'w, T>>, 
+    selected: u8,
 }
 
 impl<'w, T> Screen<'w ,T>  where
@@ -41,19 +41,33 @@ impl<'w, T> Screen<'w ,T>  where
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets: Vec<T>){ 
+    pub fn new(widgets: Vec<T>)->Screen<'w, T>{
 
         // here is the logic respobsible for seting up the widgets
-        let mut x_widgets: Vec<T> = vec![];
-        let mut y_widgets: Vec<T> = vec![];
+        // let mut x_widgets: Vec<T> = vec![];
+        // let mut y_widgets: Vec<T> = vec![];
 
-        // let mut xw:Vec<_> = vec![];
-        // let mut yw:Vec<_> = vec![];
+        // for i in 0..widgets.len() {
+        //     x_widgets.push(widgets[i].clone());
+        //     y_widgets.push(widgets[i].clone());
+        // }
 
-        for i in 0..widgets.len() {
-            x_widgets.push(widgets[i].clone());
-            y_widgets.push(widgets[i].clone());
-        }
+        let mut x_widgets = widgets.clone();
+        let mut y_widgets = widgets.clone();
+
+        x_widgets.sort_by(|w1, w2|{
+            match w1.x() > w2.x() {
+                true => std::cmp::Ordering::Greater,
+                _ => std::cmp::Ordering::Less,
+            }
+        });
+
+        y_widgets.sort_by(|w1, w2|{
+            match w1.y() > w2.y() {
+                true => std::cmp::Ordering::Greater,
+                _ => std::cmp::Ordering::Less,
+            }
+        });
 
         x_widgets.sort_by(|w1, w2|{
             match w1.x() > w2.x() {
@@ -80,6 +94,12 @@ impl<'w, T> Screen<'w ,T>  where
             wrv = self::Screen::orderw(&x_widgets, &y_widgets)
         }
         
+        // TODO: change the clone behavior
+        Screen {
+            widgets: wrv.clone(),
+            selected: 0,
+        }
+
     }
 
     /// this is used to make a matrix of WidgetWrapper where as
@@ -279,7 +299,7 @@ impl<'w, T> Screen<'w ,T>  where
 
     pub fn load_conf(){}
 
-    pub fn selected(&self) -> &T{
+    pub fn selected(&self) -> u8{
         self.selected
     }
 
