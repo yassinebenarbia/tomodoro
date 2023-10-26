@@ -181,7 +181,7 @@ impl App {
 
     }
 
-    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>,screen: Screen<'a, D>, timerstate: &mut TimerState) where
+    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>,screen:& Screen<'a, D>, timerstate: &mut TimerState) where
         B: Backend,
         D: Displayable + Clone + Debug,
     {
@@ -286,10 +286,9 @@ impl App {
             timerstate,
         );
 
-
     }
 
-    pub fn run(mut self) -> Result<(), Box<dyn Error>>{
+    pub fn run(mut self) -> Result<(), Box<dyn Error>> {
 
         // setup terminal
         enable_raw_mode()?;
@@ -331,7 +330,7 @@ impl App {
 
             terminal.draw(|f| {
 
-                App::renderui(f, screen, &mut timerstate);
+                App::renderui(f, &screen, &mut timerstate);
 
             })?;
 

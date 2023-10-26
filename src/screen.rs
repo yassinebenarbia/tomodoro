@@ -41,7 +41,7 @@ impl<'w, T> Screen<'w ,T>  where
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets: Vec<T>)->Screen<'w, T>{
+    pub fn new(widgets: Vec<T>)->Screen<'w, T> {
 
         // here is the logic respobsible for seting up the widgets
         // let mut x_widgets: Vec<T> = vec![];
@@ -85,13 +85,13 @@ impl<'w, T> Screen<'w ,T>  where
 
 
         // wrappers vector
-        let mut wrv: Vec<WidgetWrapper<T>> = vec![];
+        let mut wrv: Vec<WidgetWrapper<'w ,T>> = vec![];
         // needs to determine the left, right, up and down widgets of each 
         // widget and then put them inside the widget wrapper vector wrv
         if widgets.len() == 1{
             wrv = self::Screen::orderw_one(&x_widgets, &y_widgets);
         }else {
-            wrv = self::Screen::orderw(&x_widgets, &y_widgets)
+            wrv = self::Screen::orderw(&x_widgets, &y_widgets);
         }
         
         // TODO: change the clone behavior
@@ -105,7 +105,7 @@ impl<'w, T> Screen<'w ,T>  where
     /// this is used to make a matrix of WidgetWrapper where as
     /// each widget will be sorted with their x and y indecies
     /// NOTE: this will take tow vectors of length 1
-    fn orderw_one<'a>(x_widgets:&'a Vec<T>,y_widgets:&'a Vec<T>) -> Vec<WidgetWrapper<'a, T>>{
+    fn orderw_one<'a>(x_widgets:&'w  Vec<T>, y_widgets:&'w  Vec<T>) -> Vec<WidgetWrapper<'a, T>>{
         let mut toreturn: Vec<WidgetWrapper<T>> = vec![];
 
         toreturn.push(
@@ -124,9 +124,9 @@ impl<'w, T> Screen<'w ,T>  where
     /// this is used to make a matrix of WidgetWrapper where as
     /// each widget will be sorted with their x and y indecies
     /// NOTE: this will take tow vectors of length greater than 1
-    fn orderw<'a>(x_widgets:&'a Vec<T>, y_widgets:&'a Vec<T>) -> Vec<WidgetWrapper<'a, T>>{
+    fn orderw<'a: 'w>(x_widgets:&'a Vec<T>, y_widgets:&'a Vec<T>) -> Vec<WidgetWrapper<'w, T>>{
 
-        let mut toreturn: Vec<WidgetWrapper<'a, T>> = vec![];
+        let mut toreturn = vec![];
         let mut temp = vec![];
         let mut ypos = 0;
 
@@ -295,6 +295,7 @@ impl<'w, T> Screen<'w ,T>  where
         }
 
         toreturn
+
     }
 
     pub fn load_conf(){}
