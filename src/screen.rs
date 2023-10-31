@@ -1,4 +1,6 @@
-use std::{fmt::Debug, cmp::Ordering, rc::Rc};
+use std::{fmt::Debug, cmp::Ordering, rc::Rc, ops::Deref};
+use tui::widgets;
+
 use crate::displayable::Displayable;
 
 // question:
@@ -37,23 +39,25 @@ pub struct Screen<'w, T: Displayable + Debug + Clone> {
 }
 
 impl<'w, T> Screen<'w ,T>  where
-    T: Displayable + Clone + Debug + 'w
+    T: Displayable + Clone + Debug + 'w,
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets: Vec<T>)->Screen<'w, T> {
+    pub fn new(widgets: Vec<&'w T>)->Screen<'w, T> {
 
         // here is the logic respobsible for seting up the widgets
-        // let mut x_widgets: Vec<T> = vec![];
-        // let mut y_widgets: Vec<T> = vec![];
+        let mut x_widgets: Vec<&'w T> = vec![];
+        let mut y_widgets: Vec<&'w T> = vec![];
 
-        // for i in 0..widgets.len() {
-        //     x_widgets.push(widgets[i].clone());
-        //     y_widgets.push(widgets[i].clone());
-        // }
+        for i in 0..widgets.len() {
 
-        let mut x_widgets = widgets.clone();
-        let mut y_widgets = widgets.clone();
+            x_widgets.push(& widgets[i]);
+            y_widgets.push(& widgets[i]);
+
+        }
+
+        // let mut x_widgets = widgets.clone();
+        // let mut y_widgets = widgets.clone();
 
         x_widgets.sort_by(|w1, w2|{
             match w1.x() > w2.x() {
@@ -89,9 +93,9 @@ impl<'w, T> Screen<'w ,T>  where
         // needs to determine the left, right, up and down widgets of each 
         // widget and then put them inside the widget wrapper vector wrv
         if widgets.len() == 1{
-            wrv = self::Screen::orderw_one(&x_widgets, &y_widgets);
+            wrv = self::Screen::orderw_one(x_widgets, y_widgets);
         }else {
-            wrv = self::Screen::orderw(&x_widgets, &y_widgets);
+            wrv = self::Screen::orderw(x_widgets, y_widgets);
         }
         
         // TODO: change the clone behavior
@@ -105,7 +109,7 @@ impl<'w, T> Screen<'w ,T>  where
     /// this is used to make a matrix of WidgetWrapper where as
     /// each widget will be sorted with their x and y indecies
     /// NOTE: this will take tow vectors of length 1
-    fn orderw_one<'a>(x_widgets:&'w  Vec<T>, y_widgets:&'w  Vec<T>) -> Vec<WidgetWrapper<'a, T>>{
+    fn orderw_one<'a>(x_widgets: Vec<&T>, y_widgets: Vec<&T>) -> Vec<WidgetWrapper<'a, T>>{
         let mut toreturn: Vec<WidgetWrapper<T>> = vec![];
 
         toreturn.push(
@@ -123,10 +127,11 @@ impl<'w, T> Screen<'w ,T>  where
 
     /// this is used to make a matrix of WidgetWrapper where as
     /// each widget will be sorted with their x and y indecies
-    /// NOTE: this will take tow vectors of length greater than 1
-    fn orderw<'a: 'w>(x_widgets:&'a Vec<T>, y_widgets:&'a Vec<T>) -> Vec<WidgetWrapper<'w, T>>{
+    /// NOTE: this will take two vectors of a length greater than 1
+    /// those vectors will contain a reference to the initial widgets list
+    fn orderw<'a: 'w>(x_widgets: Vec<&'w T>, y_widgets: Vec<&'w T>) -> Vec<WidgetWrapper<'w, T>>{
 
-        let mut toreturn = vec![];
+        let mut toreturn: Vec<WidgetWrapper<'_, T>> = vec![];
         let mut temp = vec![];
         let mut ypos = 0;
 
@@ -175,9 +180,9 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
+                            right: Some(x_widgets[i+1]),
                             left: None,
-                            down: y_widgets.get(ypos+1),
+                            down: Some(y_widgets[ypos+1]),
                             up: None,
                         }
                     );
@@ -189,10 +194,10 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
+                            right: Some(x_widgets[i+1]),
                             left: None,
                             down: None,
-                            up: y_widgets.get(ypos-1),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
 
@@ -201,10 +206,10 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
+                            right: Some(x_widgets[i+1]),
                             left: None,
-                            down: y_widgets.get(ypos+1),
-                            up: y_widgets.get(ypos-1),
+                            down: Some(y_widgets[ypos+1]),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
                     
@@ -218,8 +223,8 @@ impl<'w, T> Screen<'w ,T>  where
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
                             right: None,
-                            left: x_widgets.get(i-1),
-                            down: y_widgets.get(ypos+1),
+                            left: Some(x_widgets[i-1]),
+                            down: Some(y_widgets[ypos+1]),
                             up: None,
                         }
                     );
@@ -230,9 +235,9 @@ impl<'w, T> Screen<'w ,T>  where
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
                             right: None,
-                            left: x_widgets.get(i-1),
+                            left: Some(x_widgets[i-1]),
                             down: None,
-                            up: y_widgets.get(ypos-1),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
 
@@ -242,9 +247,9 @@ impl<'w, T> Screen<'w ,T>  where
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
                             right: None,
-                            left: x_widgets.get(i-1),
-                            down: y_widgets.get(ypos+1),
-                            up: y_widgets.get(ypos-1),
+                            left: Some(x_widgets[i-1]),
+                            down: Some(y_widgets[ypos+1]),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
                     
@@ -257,9 +262,9 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
-                            left: x_widgets.get(i-1),
-                            down: y_widgets.get(ypos+1),
+                            right: Some(x_widgets[i+1]),
+                            left: Some(x_widgets[i-1]),
+                            down: Some(y_widgets[ypos+1]),
                             up: None,
                         }
                     );
@@ -269,10 +274,10 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
-                            left: x_widgets.get(i-1),
+                            right: Some(x_widgets[i+1]),
+                            left: Some(x_widgets[i-1]),
                             down: None,
-                            up: y_widgets.get(ypos-1),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
 
@@ -281,10 +286,10 @@ impl<'w, T> Screen<'w ,T>  where
                     toreturn.push(
                         WidgetWrapper{
                             wrapped: x_widgets[i].clone(),
-                            right: x_widgets.get(i+1),
-                            left: x_widgets.get(i-1),
-                            down: y_widgets.get(ypos+1),
-                            up: y_widgets.get(ypos-1),
+                            right: Some(x_widgets[i+1]),
+                            left: Some(x_widgets[i-1]),
+                            down: Some(y_widgets[ypos+1]),
+                            up: Some(y_widgets[ypos-1]),
                         }
                     );
                     
@@ -329,7 +334,7 @@ mod Test{
         let dumy = Dumy::new(1, 1);
         let dumy1 = Dumy::new(4, 9);
         let dumy2 = Dumy::new(9, 9);
-        let screen = Screen::new(vec![dumy, dumy1, dumy2]);
+        let screen = Screen::new(vec![&dumy, &dumy1, &dumy2]);
         
     }
 

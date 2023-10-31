@@ -30,6 +30,7 @@ pub struct Dumy{
     x: u16,
     y: u16,
 }
+
 impl Dumy {
     pub fn new(x: u16, y: u16) -> Dumy {
         Dumy { x, y }
@@ -47,6 +48,7 @@ impl StatefulWidget for Dumy {
 }
 
 impl Displayable for Dumy {
+
     fn x(&self) -> u16 {
         self.x
     }
@@ -181,9 +183,9 @@ impl App {
 
     }
 
-    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>,screen:& Screen<'a, D>, timerstate: &mut TimerState) where
+    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, screen:& Screen<'a, D>, timerstate: &mut TimerState) where
         B: Backend,
-        D: Displayable + Clone + Debug,
+        D: StatefulWidget + Displayable + Debug + Clone,
     {
 
         let mut fixer = Fixer::new(f);
@@ -288,7 +290,7 @@ impl App {
 
     }
 
-    pub fn run(mut self) -> Result<(), Box<dyn Error>> {
+    pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>> {
 
         // setup terminal
         enable_raw_mode()?;
@@ -323,8 +325,12 @@ impl App {
         //  app.draw();
         // }
         let dumy = Dumy::new(1, 1);
+        
         let dumy1 = Dumy::new(4, 9);
-        let screen = Screen::new(vec![dumy, dumy1]);
+
+        let v: Vec<Dumy> = Vec::from([]);
+
+        let screen = Screen::new(Vec::from([&dumy1]));
 
         loop {
 
@@ -357,6 +363,7 @@ impl App {
                 }
             }
         }
+
     }
 
     pub fn new(state: TimerState)->App{
