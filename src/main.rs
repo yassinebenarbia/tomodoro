@@ -1,6 +1,11 @@
 use std::io;
+use std::sync::Mutex;
+use displayable::Displayable;
+use once_cell::sync::Lazy;
 
 use app::App;
+use statefull_timer::Timer;
+use tui::widgets::{Widget, StatefulWidget, Sparkline};
 
 mod displayable;
 mod screen;
@@ -16,6 +21,7 @@ mod button;
 mod app;
 mod capabilities;
 mod state;
+
 
 fn main() -> Result<(), io::Error> {
 

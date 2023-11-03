@@ -6,6 +6,7 @@ use tui::{
     layout::{Rect, Layout},
     Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
 };
+
 use crate::{
     stateful_button::{StatefullButton, ButtonState}
     ,button::Button, button_widget::ButtonWidget, statefull_timer::Timer,
@@ -183,7 +184,7 @@ impl App {
 
     }
 
-    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, screen:& Screen<'a, D>, timerstate: &mut TimerState) where
+    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, v:& Vec<D>, timerstate: &mut TimerState) where
         B: Backend,
         D: StatefulWidget + Displayable + Debug + Clone,
     {
@@ -325,18 +326,18 @@ impl App {
         //  app.draw();
         // }
         let dumy = Dumy::new(1, 1);
-        
-        let dumy1 = Dumy::new(4, 9);
 
-        let v: Vec<Dumy> = Vec::from([]);
+        let dumy1:Dumy = Dumy::new(4, 9);
 
-        let screen = Screen::new(Vec::from([&dumy1]));
+        let v: Vec<Dumy> = vec![Dumy::new(4, 9)];
+
+        let mut screen = Screen::new(& v);
 
         loop {
 
             terminal.draw(|f| {
 
-                App::renderui(f, &screen, &mut timerstate);
+                App::renderui(f, &v, &mut timerstate);
 
             })?;
 

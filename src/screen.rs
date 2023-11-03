@@ -43,7 +43,7 @@ impl<'w, T> Screen<'w ,T>  where
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets: Vec<&'w T>)->Screen<'w, T> {
+    pub fn new(widgets:&'w Vec<T>)->Screen<'w, T> {
 
         // here is the logic respobsible for seting up the widgets
         let mut x_widgets: Vec<&'w T> = vec![];
@@ -334,7 +334,7 @@ mod Test{
         let dumy = Dumy::new(1, 1);
         let dumy1 = Dumy::new(4, 9);
         let dumy2 = Dumy::new(9, 9);
-        let screen = Screen::new(vec![&dumy, &dumy1, &dumy2]);
+        // let screen = Screen::new(& vec![&dumy, &dumy1, &dumy2]);
         
     }
 
