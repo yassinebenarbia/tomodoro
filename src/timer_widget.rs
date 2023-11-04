@@ -1,5 +1,7 @@
 use tui::{style::Style, widgets::{Borders, BorderType, Block}};
 
+use crate::displayable::Displayable;
+
 #[derive(Debug, Clone)]
 /// this widget represent a timer widget as it holds:
 /// Widget Style
@@ -23,6 +25,7 @@ pub struct TimerWidget {
     /// or doubled lines instead.
     pub border_type: BorderType,
 }
+
 
 impl TimerWidget {
     pub(crate) fn default() -> TimerWidget {

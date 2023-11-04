@@ -1,9 +1,10 @@
-use std::{time::{Duration, Instant}, io::{self, Write}, error::Error, fmt::{Alignment, Debug}, fs::File, rc::Rc};
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
+use std::{time::{Duration, Instant}, error::Error, fmt::{Alignment, Debug}, any::{self, Any}};
+use std::io;
+use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, DisableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
 use tui::{
     backend::{Backend, CrosstermBackend},
     widgets::{Borders, BorderType, Block, StatefulWidget},
-    layout::{Rect, Layout},
+    layout::Rect,
     Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
 };
 
@@ -184,24 +185,16 @@ impl App {
 
     }
 
-    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, v:& Vec<D>, timerstate: &mut TimerState) where
+    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, s:& Screen<D>, timerstate: &mut TimerState) where
         B: Backend,
         D: StatefulWidget + Displayable + Debug + Clone,
     {
 
         let mut fixer = Fixer::new(f);
 
-        let button2 = Button::default()
-            .widget(
-                Color::LightRed, Color::LightMagenta, Modifier::BOLD,
-                String::from("stuff"), Borders::ALL
-            ).layout(1, 1, 10, 10);
-
-        // f.render_widget(button2.get_widget(), button2.get_layout());
-
         // unimplemented!
         let mut onhover = |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
-        let mut onclick= |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
+        let mut onclick = |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
 
         let button: StatefullButton = StatefullButton::default()
             .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
@@ -222,7 +215,6 @@ impl App {
         let layout = button.get_layout().clone();
 
         let mut state:ButtonState = ButtonState::new(true, true);
-
 
 
         // // desired behavior
@@ -249,8 +241,7 @@ impl App {
                     )
                     .borders(Borders::ALL)
                     .border_type(BorderType::Double)
-            )
-            .time(Duration::from_secs(1501));
+            );
 
         // desired behavior
         // .on_clock_tick() // here the closure should take 
@@ -275,7 +266,10 @@ impl App {
                     .bg(Color::Red)
             );
 
-        f.render_widget(cycles_display, Rect::new(fixer.xratio(90) , fixer.yratio(1), fixer.wratio(5) , fixer.hratio(3)));
+        f.render_widget(
+            cycles_display, 
+            Rect::new(fixer.xratio(90) , fixer.yratio(1), fixer.wratio(5) , fixer.hratio(3))
+        );
 
         f.render_stateful_widget(
             button,
@@ -291,7 +285,7 @@ impl App {
 
     }
 
-    pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>> {
+    pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>>{
 
         // setup terminal
         enable_raw_mode()?;
@@ -316,9 +310,11 @@ impl App {
         //     }
         // }
 
+        // TODO: should add a new countdown stopwatch and the couter should
+        // be independed from each others
         let mut timerstate: TimerState = TimerState::default()
-            .duration(Duration::from_secs(10))
-            .displayed(Duration::from_secs(10));
+            .duration(Duration::from_secs(1500))
+            .displayed(Duration::from_secs(1500));
 
         // desired behavior
         // let app = App::create(config_path);
@@ -329,7 +325,7 @@ impl App {
 
         let dumy1:Dumy = Dumy::new(4, 9);
 
-        let v: Vec<Dumy> = vec![Dumy::new(4, 9)];
+        let v: Vec<Box<_>> = vec![Box::new(Dumy::new(4, 9))];
 
         let mut screen = Screen::new(& v);
 
@@ -337,7 +333,7 @@ impl App {
 
             terminal.draw(|f| {
 
-                App::renderui(f, &v, &mut timerstate);
+                App::renderui(f, &screen, &mut timerstate);
 
             })?;
 
@@ -353,7 +349,7 @@ impl App {
                             execute!(
                                 terminal.backend_mut(),
                                 LeaveAlternateScreen,
-                                DisableMouseCapture
+                                DisableMouseCapture,
                             )?;
                             terminal.show_cursor()?;
 

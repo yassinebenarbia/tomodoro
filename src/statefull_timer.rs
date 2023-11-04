@@ -5,8 +5,9 @@ use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState, displayable::Displayable};
 
+#[derive(Clone, Debug)]
 pub struct Timer{
     /// The Counting duration
     pub time: Duration,
@@ -147,6 +148,26 @@ impl StatefulWidget for Timer {
 
     }
 
+}
+
+/// TODO undoo this
+impl Displayable for Timer {
+
+    fn highlight(&self) {
+        
+    }
+    fn height(&self) -> u16 {
+        0
+    }
+    fn width(&self) -> u16 {
+        0
+    }
+    fn y(&self) -> u16 {
+        0
+    }
+    fn x(&self) -> u16 {
+        0
+    }
 }
 
 impl Timer {

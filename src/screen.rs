@@ -43,7 +43,7 @@ impl<'w, T> Screen<'w ,T>  where
 {
 
     // NOTE: can we dismiss the call of clone?
-    pub fn new(widgets:&'w Vec<T>)->Screen<'w, T> {
+    pub fn new(widgets:&'w Vec<Box<T>>)->Screen<'w, T> {
 
         // here is the logic respobsible for seting up the widgets
         let mut x_widgets: Vec<&'w T> = vec![];

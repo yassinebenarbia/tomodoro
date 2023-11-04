@@ -54,7 +54,8 @@ impl TimerState {
         *self
     }
 
-    /// displayed time setter: the default displayed time
+    /// Displayed time setter: the default displayed time.
+    /// So basically the first frame of the timer
     pub fn displayed<'a>(&'a mut self, displayed: Duration) -> TimerState{
         self.displayed = displayed;
         *self
@@ -124,7 +125,6 @@ impl TimerState {
 
         // meaning that time has advanced since the beginning of the counter
         // need to do a modulo opperation to get the number of cycles
-
         if diff > 0 {
 
             if self.util.prev_diff.as_secs() < diff {
@@ -153,7 +153,6 @@ impl TimerState {
                     .expect("Couldn't create File");
                 f.write(self.get_cycle().to_string().as_bytes())
                     .expect("Couldn't write to file");
-
                 
             }
 

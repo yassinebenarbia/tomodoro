@@ -37,6 +37,7 @@ pub struct StatefullButton<'B> where {
     /// onclick closure, will fier whenever the clicked state of the ButtonState state is true
     onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 }
+
 //  the Default implementation
 //  -----------------
 // | |----|         |
