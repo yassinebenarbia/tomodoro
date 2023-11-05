@@ -1,4 +1,4 @@
-use std::{time::{Duration, Instant}, error::Error, fmt::{Alignment, Debug}, any::{self, Any}, io::Stdout, default};
+use std::{time::{Duration, Instant}, error::Error, fmt::{Alignment, Debug}, any::{self, Any}, io::Stdout, default, cmp::Ordering};
 use std::io;
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, DisableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, cursor::MoveUp};
 use json::JsonValue;
@@ -193,9 +193,9 @@ impl App {
 
         let widgets_name_list = vec!["Timer", "Button", "Counter"];
 
-        let filtered_conf = config.filter(widgets_name_list);
+        let filtered_conf = config.filter(&widgets_name_list);
 
-        let default = config.filter(vec!["default"]);
+        let default = config.filter(&vec!["default"]);
 
         let mut fixer = Fixer::new(f);
 
