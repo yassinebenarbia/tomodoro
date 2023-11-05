@@ -7,6 +7,8 @@ use tui::{
 
 use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState, displayable::Displayable};
 
+/// This shall represent a Timer, as with the timer (TimerWidget),
+/// frame (rectangel), layout (rectangel) and time (duration)
 #[derive(Clone, Debug)]
 pub struct Timer{
     /// The Counting duration

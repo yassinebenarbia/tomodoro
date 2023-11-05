@@ -1,5 +1,16 @@
 {
-  "timer": {
+  "default": "Timer",
+  "Timer": {
+    "color": "#00ff00",
+    "x": 10,
+    "y": 20
+  },
+  "Timer": {
+    "color": "#a0ff00",
+    "x": 20,
+    "y": 20
+  },
+  "Button":{
     "color": "#00ff00",
     "x": 10,
     "y": 20

@@ -1,6 +1,7 @@
-use std::{time::{Duration, Instant}, error::Error, fmt::{Alignment, Debug}, any::{self, Any}};
+use std::{time::{Duration, Instant}, error::Error, fmt::{Alignment, Debug}, any::{self, Any}, io::Stdout, default};
 use std::io;
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, DisableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}};
+use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, DisableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, cursor::MoveUp};
+use json::JsonValue;
 use tui::{
     backend::{Backend, CrosstermBackend},
     widgets::{Borders, BorderType, Block, StatefulWidget},
@@ -12,7 +13,7 @@ use crate::{
     stateful_button::{StatefullButton, ButtonState}
     ,button::Button, button_widget::ButtonWidget, statefull_timer::Timer,
     timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::Screen
+    displayable::Displayable, screen::{Screen, self}, config::Config, directions::Directions
 };
 
 /// widget
@@ -185,10 +186,16 @@ impl App {
 
     }
 
-    pub fn renderui<'a, B, D>(f: & mut Frame<'a ,B>, s:& Screen<D>, timerstate: &mut TimerState) where
+    /// NOTE the config parameter should become a JsonValue
+    pub fn renderui<'a, B>(f: & mut Frame<'a ,B>, config:&mut Config, timerstate: &mut TimerState) where
         B: Backend,
-        D: StatefulWidget + Displayable + Debug + Clone,
     {
+
+        let widgets_name_list = vec!["Timer", "Button", "Counter"];
+
+        let filtered_conf = config.filter(widgets_name_list);
+
+        let default = config.filter(vec!["default"]);
 
         let mut fixer = Fixer::new(f);
 
@@ -215,7 +222,6 @@ impl App {
         let layout = button.get_layout().clone();
 
         let mut state:ButtonState = ButtonState::new(true, true);
-
 
         // // desired behavior
         // // let app = App::new();
@@ -323,17 +329,15 @@ impl App {
         // }
         let dumy = Dumy::new(1, 1);
 
-        let dumy1:Dumy = Dumy::new(4, 9);
+        let timer: Timer = Timer::default();
 
-        let v: Vec<Box<_>> = vec![Box::new(Dumy::new(4, 9))];
-
-        let mut screen = Screen::new(& v);
+        let mut conf = Config::read();
 
         loop {
 
             terminal.draw(|f| {
 
-                App::renderui(f, &screen, &mut timerstate);
+                App::renderui::<CrosstermBackend<Stdout>>(f, &mut conf, &mut timerstate);
 
             })?;
 
@@ -346,14 +350,7 @@ impl App {
                     match key.code {
                         KeyCode::Char('q') =>{
 
-                            execute!(
-                                terminal.backend_mut(),
-                                LeaveAlternateScreen,
-                                DisableMouseCapture,
-                            )?;
-                            terminal.show_cursor()?;
-
-                            return Ok(())
+                            return App::quit(terminal)
                         },
                         _ => {}
                     }
@@ -363,16 +360,50 @@ impl App {
 
     }
 
+    pub fn select(direction: Directions){
+
+        match direction {
+
+            Directions::Up =>{
+
+                todo!("this should select the up widget");
+
+            },
+            Directions::Down => {
+
+                todo!("this should select the left widget");
+            },
+            Directions::Righ => {
+
+                todo!("this should select the right widget");
+
+            },
+            Directions::Left =>{
+
+                todo!("this should select the left widget");
+
+            }
+
+        }
+
+    }
+
     pub fn new(state: TimerState)->App{
         App { state: state }
     }
 
-    pub fn quit(mut self){
+    pub fn quit(mut terminal:Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>>{
 
-    }
+        execute!(
+            terminal.backend_mut(),
+            LeaveAlternateScreen,
+            DisableMouseCapture,
+        )?;
 
-    pub fn set_state(mut self)->App{
-        self
+        terminal.show_cursor()?;
+
+        Ok(())
+
     }
     
 }

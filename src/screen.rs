@@ -309,11 +309,6 @@ impl<'w, T> Screen<'w ,T>  where
         self.selected
     }
 
-    pub fn up(){}
-    pub fn down(){}
-    pub fn right(){}
-    pub fn left(){}
-    
 }
 
 mod Test{
