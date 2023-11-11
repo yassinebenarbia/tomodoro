@@ -7,7 +7,9 @@ use app::App;
 use statefull_timer::Timer;
 use tui::widgets::{Widget, StatefulWidget, Sparkline};
 
+mod State;
 mod config;
+mod constructor;
 mod directions;
 mod displayable;
 mod screen;

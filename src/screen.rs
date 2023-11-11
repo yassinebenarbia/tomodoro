@@ -20,13 +20,13 @@ use crate::displayable::Displayable;
 // have a statefull widget that behave like stateless one, and not the other
 // way around
 #[derive(Debug, Clone)]
-struct WidgetWrapper<'a, T: Displayable>{
-    wrapped: T,
-    up: Option<&'a T>,
-    down: Option<&'a T>,
-    right: Option<&'a T>,
-    left: Option<&'a T>,
-}
+pub struct WidgetWrapper<'a, T: Displayable>{
+        wrapped: T,
+        up: Option<&'a T>,
+        down: Option<&'a T>,
+        right: Option<&'a T>,
+        left: Option<&'a T>,
+    }
 
 /// This screen will act as a wrapper for all widgets, that triggers
 /// the highlight method for the selected widget and also will: 

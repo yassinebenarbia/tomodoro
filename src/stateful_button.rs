@@ -1,4 +1,6 @@
+use std::fmt::Debug;
 use std::io;
+use std::path::Display;
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
 use tui::buffer::{Cell, Buffer};
@@ -7,8 +9,10 @@ use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
 };
+use crate::State::State;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
+use crate::displayable::Displayable;
 
 //TODO: add layout and style
 //TODO: make a text struct that will held the text inside the button, if necessery
@@ -33,9 +37,23 @@ pub struct StatefullButton<'B> where {
     ///it's style
     widget: ButtonWidget<'B>,
     /// onhover closure, will fier whenever the hovered state of the ButtonState state is true
-    onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
+    onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
     /// onclick closure, will fier whenever the clicked state of the ButtonState state is true
-    onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
+    onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+}
+
+impl<'B> Debug for StatefullButton<'B> {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("frame")
+            .field("frame", &self.frame)
+            .field("layout", &self.layout)
+            .field("widget", &self.widget)
+            .field("onhover", &format!("onhover_closure"))
+            .field("onclick", &format!("onclick_closure"))
+            .finish()
+
+    }
 }
 
 //  the Default implementation
@@ -73,7 +91,7 @@ impl<'B> Default for StatefullButton<'B> {
 
 impl<'B> StatefulWidget for StatefullButton<'B> {
 
-    type State = ButtonState;
+    type State = State;
 
     fn render(self, area: Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State){
 
@@ -145,7 +163,9 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
                 .set_style(self.widget.border_style);
         }
 
-        if state.clicked {
+        let clicked = state.states.get("clicked").unwrap();
+
+        if clicked.trim().parse::<bool>().unwrap() {
 
             match self.onclick {
                 Some(mut func) =>{
@@ -153,25 +173,20 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
                 }
                 None=>{}
             }
-            
-            match self.onhover{
-                Some(mut func) =>{
-                    func(area, buf, state);
-                }
-                None=>{}
-            }
-            
-            state.clicked = false;
+
+            state.states.insert("clicked".to_string(), "false".to_string());
+
         }
 
     }
+
 }
 
 impl<'B> StatefullButton<'B>{
 
     pub fn new<'b, F>(frame: Rect, layout: Rect, widget: ButtonWidget<'b>,
-        onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
-        onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
+        onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+        onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
     )-> StatefullButton<'b>{
 
         match compare_rect(&layout, &frame){
@@ -222,7 +237,7 @@ impl<'B> StatefullButton<'B>{
     pub fn text(mut self, text: String) -> StatefullButton<'B> {self}
 
     pub fn onclick<T>(mut self, onclick: &'B mut T) -> StatefullButton<'B> where
-        T: FnMut(Rect, &mut Buffer, &mut ButtonState)
+        T: FnMut(Rect, &mut Buffer, &mut State)
     {
         self.onclick = Some(
             Box::new(onclick)
@@ -231,7 +246,7 @@ impl<'B> StatefullButton<'B>{
     }
 
     pub fn onhover<T>(mut self, onhover: &'B mut T) -> StatefullButton<'B> where
-        T: FnMut(Rect, &mut Buffer, &mut ButtonState)
+        T: FnMut(Rect, &mut Buffer, &mut State)
     {
         self.onhover = Some(
             Box::new(onhover)
@@ -252,6 +267,32 @@ impl<'B> StatefullButton<'B>{
     // pub fn get_style(& self) ->Style{
     //     // Style::default()
     // }
+
+}
+
+impl<'B> Displayable for  StatefullButton<'B>{
+
+    fn manage_state(&self, state: &mut crate::State::State) {
+        todo!()
+    }
+
+    fn x(&self) -> u16 {
+        todo!()
+    }
+
+    fn y(&self) -> u16 {
+        todo!()
+    }
+
+    fn width(&self) -> u16 {
+        todo!()
+    }
+    fn height(&self) -> u16 {
+        todo!()
+    }
+    fn highlight(&self) {
+        todo!()
+    }
 
 }
 

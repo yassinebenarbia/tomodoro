@@ -1,6 +1,6 @@
-use std::{fs, collections::{HashMap, BTreeMap}};
+use std::{fs, collections::BTreeMap};
 
-use serde::de::value;
+use toml::Value;
 
 #[derive(Debug, Clone)]
 /// struct resemble the Config structure
@@ -10,15 +10,21 @@ pub struct Config {
 
 impl Config {
 
+    pub fn new(conf: toml::Value)->Config{
+        Config { conf }
+    }
+
     /// this will
     /// 1) read the config path env variable
     /// 2) check for the default file name 
     /// 3) parse file
     pub fn read() -> Config{
 
+        // reading the env variable for the config path
         let env = std::env::var("TOMODORO_PATH").unwrap();
 
-        let sconfig = fs::read_to_string(env.clone()+"/tomodoro.json").unwrap();
+        // stands for string config
+        let sconfig = fs::read_to_string(env.clone()+"/tomodoro.toml").unwrap();
 
         let conf = toml::de::from_str(sconfig.as_str()).unwrap();
 
@@ -60,7 +66,9 @@ impl Config {
         todo!()
     }
 
-    pub fn sort_with(&self, key: String, value_type: String) -> BTreeMap<String, toml::Value>{
+    /// sorts the given `config.conf` struct field with respect to the
+    /// `key` parameter
+    pub fn sort_with(&self, key: String, value_type: String) -> Vec<(String, Value)>{
 
         if let toml::Value::Table(mut table) = self.conf.clone(){
 
@@ -70,23 +78,28 @@ impl Config {
                 sorted_table.insert(key.clone(), value.clone());
             }
 
-            for (key, value) in sorted_table.iter(){
-                // println!("{}: {}", key, value);
-            }
+            let mut temp: Vec<(String, Value)> = sorted_table.into_iter().collect();
 
-            return sorted_table;
+            let key_to_sort_by = key;
+
+            temp.sort_by_key(|key|{
+                key.1.get(key_to_sort_by.clone()).unwrap().as_integer()
+            });
+
+            return temp;
 
         }
 
-        return  BTreeMap::new();
+        Vec::new()
 
     }
 
 }
 
 mod Test{
+
     use std::{fs, collections::HashMap, cmp::Ordering};
-    use json::JsonValue::{self, Null};
+    use json::JsonValue;
     use toml::{self, Table};
 
     use super::Config;
@@ -178,32 +191,37 @@ mod Test{
     fn sort_test() {
 
         let tconfig = toml::de::from_str(r#"
-            [Default]
-              value = "Timer"
             [Timer]
               color = '#000000'
               width = 0.5
               height = 0.4
-              x = 20
+              x = 10
               y = 40
             [Button]
               color = '#000000'
               width = 0.5
               height = 0.4
               x = 20
-              y = 40
-            
+              y = 10
+            [Widget]
+              color = '#000000'
+              width = 0.5
+              height = 0.4
+              x = 0
+              y = 10
         "#).unwrap();
 
         let conf = Config {
             conf: tconfig,
         };
 
-        let mut result = conf.sort_with("x".to_string(), "integer".to_string());
+        let result = conf.sort_with("y".to_string(), "integer".to_string());
 
-        for (key, value) in result.iter(){
-            println!("{}: {}", key, value);
-        }
+        assert_eq!(
+            result[0].0,String::from("Button")
+        );
+
+        println!("result:\n{:?}", result[0]);
 
     }
 

@@ -5,6 +5,7 @@ pub struct Event {
     pub items: Vec<String>,
     pub state: ListState
 }
+
 impl Event {
 
     pub fn new(items: Vec<String>) -> Event {

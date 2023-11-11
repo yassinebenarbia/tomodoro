@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+/// this is used to manage time between frames, as it helps holding the time \
+/// difference between two time stamps
 #[derive(Debug, Clone, Copy)]
 pub struct FrameManager{ 
     /// just a second, previousloy time difference

@@ -1,11 +1,10 @@
 use std::{
-    time::{Duration, self, SystemTime}, io::{self, Write}, fs, os::linux::raw::stat
-};
+    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}};
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState, displayable::Displayable};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState, displayable::Displayable, State};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -21,9 +20,9 @@ pub struct Timer{
     /// Holds style, borders, border_style and border_type
     pub widget: TimerWidget
 }
-// ToDo: add the ability to change the style of 
+// TODO: add the ability to change the style of 
 // the displayed time
-// Note: we can't specify the time step here, as it should 
+// NOTE: we can't specify the time step here, as it should 
 // be controlled by on the loop, as we are not sure that 
 // it will be renderd infinitely or just once
 
@@ -41,7 +40,7 @@ impl Default for Timer {
 }
 
 impl StatefulWidget for Timer {
-    type State = TimerState;
+    type State = State::State;
     fn render(self, area: Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
 
         // checks the steate,
@@ -113,8 +112,13 @@ impl StatefulWidget for Timer {
                 .set_style(self.widget.border_style);
         }
 
+        // duration as a string
+        let s_duration = state.states.get("displayed").unwrap();
+        // converting the duration from a string to a u64 to a Duration
+        let duration = Duration::from_secs(s_duration.parse::<u64>().unwrap());
+        
         //TODO: move this call out of the rendering loop
-        let time = time_conversion(state.displayed);
+        let time = time_conversion(duration);
 
         let time = Spans::from(vec![
             Span::styled(time, Style::default().fg(Color::Yellow))
@@ -146,8 +150,11 @@ impl StatefulWidget for Timer {
 
         buf.set_spans(time_x, time_y, &time, time_area_width);
 
-        state.manage_state();
+        // TODO: This should manage the time state, check timer_state.manage_state()
+        // state.manage_state(|s|{});
 
+        self.manage_state(state);
+        
     }
 
 }
@@ -170,6 +177,74 @@ impl Displayable for Timer {
     fn x(&self) -> u16 {
         0
     }
+
+    /// TODO: this should get done today
+    fn manage_state(&self, state: &mut State::State) {
+
+        // accessing the start value for the state.states hashmap
+        //{
+        //  "start": "123456" // this is the duration in seconds format
+        //}
+        let start = state.get_states().get("start").expect("no start time is not provided");
+
+        // duration from which the application started
+        let start_duration = UNIX_EPOCH + Duration::from_secs(start.parse::<u64>().unwrap());
+
+        // difference between the current time and the started time as a second
+        let mut diff = SystemTime::now()
+            .duration_since(start_duration)
+            .expect("unable to manage time")
+            .as_secs();
+
+        // meaning that time has advanced since the beginning of the counter
+        // need to do a modulo opperation to get the number of cycles
+        if diff > 0 {
+
+            // previously calcuated time difference. (previous clock tick)
+            let prev_diff = state.get_states().get("prev_diff").unwrap().parse::<u64>().unwrap();
+
+            // the duration of the cycle
+            let duration = state.get_states().get("duration").unwrap().parse::<u64>().unwrap();
+
+            if prev_diff < diff {
+
+                diff %= duration;
+
+                // if the time advanced to the point where there is a whole 1s diffrence between
+                // the current and previously calculated difference
+                state.states.insert(
+                    "prev_diff".to_string(),
+                    diff.to_string()
+                );
+
+                let duration = (Duration::from_secs(duration) - Duration::from_secs(diff)).as_secs().to_string();
+
+                state.states.insert("displayed".to_string(), duration);
+                
+            }
+
+            // thus a full cycle is completed
+            if diff == duration - 1 && prev_diff < diff {
+
+                state.states.insert(String::from("prev_diff"), diff.to_string());
+
+                // another check, to know wether or not the 
+                // previous call is different or not from the current
+
+                let cycles = state.states.get("cycles").unwrap().parse::<u32>().unwrap() + 1;
+                state.states.insert("cycles".to_string(), cycles.to_string());
+
+                // let mut f = File::create("thing.txt")
+                //     .expect("Couldn't create File");
+                // f.write(cycles.to_string().as_bytes())
+                //     .expect("Couldn't write to file");
+                
+            }
+
+        }
+        
+    }
+
 }
 
 impl Timer {
@@ -208,4 +283,14 @@ impl Timer {
     pub fn get_layout(&mut self) -> Rect {
         self.layout.clone()
     }
+
+}
+mod Test{
+
+#[test]
+    /// state_management_test
+    fn state_management_test() {
+        unimplemented!();
+    }
+
 }

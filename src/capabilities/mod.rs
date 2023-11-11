@@ -26,9 +26,7 @@ pub fn compare_rect(br:& Rect, sr:& Rect) -> Result<(),&'static str>{
 
 }
 
-/// Converts a Duration typed value to a mm:ss string format
-///
-/// this should output the time in the following form mm:ss
+/// Converts the `duration: Duration` parameter to a mm:ss string format
 pub fn time_conversion(duration: Duration) -> String {
     let s_duration = duration.as_secs();
     let mut minutes:String = (s_duration / 60).to_string();
