@@ -1,6 +1,11 @@
+use std::fs::OpenOptions;
+use std::io::Write;
+
 use tui::widgets::StatefulWidget;
 
 use crate::{displayable::Displayable, config::Config, State::State, statefull_timer::Timer, stateful_button::StatefullButton};
+
+pub struct Constructor;
 
 #[derive(Debug, Clone)]
 pub struct Dumy{
@@ -103,13 +108,88 @@ impl Displayable for Dumy {
 /// construct a vector of widgets based on the `widgets parameter`, where
 /// each widget implements the `Displayable trait
 /// TODO this should also provide the states
-pub fn constructor<'a>(widgets: &Config) -> 
+pub fn constructor<'a>(config: &Config) -> 
 Vec<Box<dyn Displayable>>{
 
-    let prim_widgets = widgets.filter(&vec!["Timer", "Button"]);
+    let prim_widgets = config.filter(&vec!["Timer", "Button"]);
+    construct_Timer(config);
 
     return vec![Box::new(Timer::default()), Box::new(StatefullButton::default())];
 
+}
+
+/// cosntructs a `Timer` instance from the provided config
+fn construct_Timer(config: &Config) -> Timer{
+
+    let mut file = OpenOptions::new().append(true).open("log").unwrap();
+
+    // check the `[Timer]` field in the config file
+    match config.conf.get("Timer").expect("Timer is not provided in the config file") {
+
+        // check the vlaues of the `[Timer]` table
+        toml::Value::Table(table) => {
+
+            // for each key value paires under the `[Timer]` field
+            for (key, val) in table.iter() {
+
+                file.write(format!("Key: {}, Value: {}\n", key, val).as_bytes());
+
+                // match key {
+                //     // std::string::String::from("hello") => {}
+                // };
+
+            }
+
+        },
+
+        _ => {}
+        
+    };
+
+    Timer::default()
+}
+
+pub fn truck(conf: &Config)-> Vec<(Box<State>, Box<dyn Displayable>)>{
+
+    match conf.conf.clone() {
+
+        toml::Value::Table(table) => {
+            for (key, val) in table.iter() {
+                println!("Key: {}", key);
+            }
+        }
+
+        toml::Value::Array(array) => {
+            for val in array.iter() {
+            }
+        }
+
+        toml::Value::Integer(int_val) => {
+            println!("Integer Value: {}", int_val);
+        }
+
+        toml::Value::Float(float_val) => {
+            println!("Float Value: {}", float_val);
+        }
+
+        toml::Value::String(str_val) => {
+            println!("String Value: {}", str_val);
+        }
+
+        toml::Value::Boolean(bool_val) => {
+            println!("Boolean Value: {}", bool_val);
+        }
+
+        _ => {
+            // Handle other types if necessary
+        }
+
+    }
+
+    return vec![
+        (Box::new(State::default()), Box::new(Timer::default())),
+        (Box::new(State::default()), Box::new(StatefullButton::default())),
+    ];
 }
 
 mod Test{
@@ -148,4 +228,5 @@ mod Test{
         println!("from constructor:\n{:?}", constructor(&conf));
 
     }
+
 }
