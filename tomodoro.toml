@@ -1,16 +1,18 @@
 [Timer]
   # widget collor, should be a string
   color = '#000000'
+  # widget background color
+  background_color = "#ff3344"
   # widget width, can be an integer or a float between 0 and 1
-  width = 0.5
+  width = 2
   # widget height, can be an integer or a float between 0 and 1
-  height = 0.4
+  height = 2
   # postion of the widget in x direction
   # can be an integer or a float between 0 and 1
-  x = 20
+  x = 15
   # postion of the widget in y direction
   # can be an integer or a float between 0 and 1
-  y = 40
+  y = 10
   # duratoin of the cycle, should be an integer
   duration = 1500
   # number of cycles, should be a string of either a number 

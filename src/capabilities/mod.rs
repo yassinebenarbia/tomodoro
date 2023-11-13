@@ -41,6 +41,44 @@ pub fn time_conversion(duration: Duration) -> String {
     res
 }
 
+/// converts a string of color, e.g "#00ffaa", "#aabbcc", ...\
+/// into their basic rgb colors as a tuple of 3 u8's as\
+/// `Option<(u8, u8, u8)>`.
+pub fn hex_to_rgb(hex: &str) -> Option<(u8, u8, u8)> {
+    if hex.len() != 7 || !hex.starts_with('#') {
+        return None; // Invalid format
+    }
+
+    let r = u8::from_str_radix(&hex[1..3], 16).ok()?;
+    let g = u8::from_str_radix(&hex[3..5], 16).ok()?;
+    let b = u8::from_str_radix(&hex[5..7], 16).ok()?;
+
+    Some((r, g, b))
+}
+
+/// Checks if a string is a number, meaning a signed integer\
+/// returns `true` if the provided string is an integer\
+/// and `false` if not.
+pub fn is_number(string: &str) -> bool{
+
+    match string.parse::<i64>() {
+        Ok(_) => true,
+        Err(_) => false
+    }
+
+}
+
+/// Checks if a string is a float\
+/// returns `true` if the provided string is an integer\
+/// and `false` if not.
+pub fn is_float(string: &str) -> bool{
+
+    match string.parse::<f64>() {
+        Ok(_) => true,
+        Err(_) => false
+    }
+
+}
 
 
 mod Test{

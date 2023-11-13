@@ -249,6 +249,7 @@ impl Displayable for Timer {
 
 impl Timer {
 
+    //
     pub fn layout(mut self, x: u16, y: u16, width: u16, height: u16) -> Timer{
         let layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){

@@ -347,7 +347,7 @@ impl App {
 
         let default = conf.filter(&vec!["Default"]);
 
-        let mut widgets = constructor(&conf);
+        let mut widgets = constructor(&conf, &mut terminal);
 
         // let filtered_conf = config.filter(&vec!["Timer", "Button", "Counter"]);
 
