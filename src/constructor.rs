@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{fs::OpenOptions, io::Stdout};
 use std::io::Write;
 
@@ -5,6 +6,8 @@ use toml::{Value, value::Time};
 use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
+use crate::button_widget::ButtonWidget;
+use crate::stateful_button::ButtonState;
 use crate::{displayable::Displayable, config::Config, State::State, statefull_timer::Timer, stateful_button::StatefullButton, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
 
 pub struct Constructor;
@@ -114,7 +117,7 @@ pub fn constructor<'a>(config: &Config, term: &mut Terminal<CrosstermBackend<Std
 
     let prim_widgets = config.filter(&vec!["Timer", "Button"]);
 
-    construct_Timer(config);
+    // construct_Timer(config);
 
     truck(config, term);
 
@@ -137,11 +140,11 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
                 match key.as_str() {
 
                     timer_string => {
-                        timer_construct(val, term);
+                        construct_timer(val, term);
                         // toreturn.push(timer_state_consturct(val), timer_construct(val))
                     },
                     button_string => {
-                        button_construct(val);
+                        construct_button(val, term);
                         // toreturn.push(button_state_consturct(val), button_construct(val))
                     }
                     _ => {}
@@ -167,10 +170,9 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
 //TODO construct the function button_constructor
 //TODO construct the function button_state_constructor
 
-/// Constructs the `Timer` widget based on the `Values` provided on the\
-/// `values` parameter.
+/// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
 /// returns a `Timer`
-fn timer_construct(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Timer{
+fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Timer{
 
     // in case one of the fields of the config isn't of type
     // float, we flag it as true to check for integer or else
@@ -181,7 +183,8 @@ fn timer_construct(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
     let mut y_flag = false;
 
     // desired timer and it's internals
-    let toreturn = Timer::default();
+    let mut toreturn = Timer::default();
+
     let timer_widget = TimerWidget::default();
     let style = Style::default();
 
@@ -321,7 +324,7 @@ fn timer_construct(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
                 
             }
 
-            toreturn.clone()
+            return toreturn
                 .layout(x, y, width, height)
                 .widget(
                     timer_widget.style(style)
@@ -339,41 +342,187 @@ fn timer_construct(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
 
 }
 
-fn button_construct(values:& Value){
+/// Constructs the `StatefullButton` widget based on the `Values` provided on the `values` parameter.
+/// returns a `StatefullButton`
+fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>)
+    -> StatefullButton<'b>
+{
 
-}
+    let toreturn = StatefullButton::default();
+    let style = Style::default();
+    let buttonWidget = ButtonWidget::default();
 
-/// cosntructs a `Timer` instance from the provided config
-fn construct_Timer(config: &Config) -> Timer{
+    let mut h_flag = false;
+    let mut w_flag = false;
+    let mut x_flag = false;
+    let mut y_flag = false;
 
-    let mut file = OpenOptions::new().append(true).open("log").unwrap();
+    // desired timer and it's internals
+    // let toreturn = Timer::default();
+    // let timer_widget = TimerWidget::default();
 
-    // check the `[Timer]` field in the config file
-    match config.conf.get("Timer").expect("Timer is not provided in the config file") {
+    let binding = term.get_frame();
+    let mut fixer = Fixer::new(&binding);
 
-        // check the vlaues of the `[Timer]` table
+    let mut width: u16 = fixer.wratio(30);
+    let mut height: u16 = fixer.hratio(20);
+    let mut x: u16 = fixer.xratio(40);
+    let mut y: u16 = fixer.xratio(20);
+
+    let mut title = String::new();
+
+    match values {
+
         toml::Value::Table(table) => {
 
-            // for each key value paires under the `[Timer]` field
-            for (key, val) in table.iter() {
+            for (key, value) in table {
 
-                file.write(format!("Key: {}, Value: {}\n", key, val).as_bytes());
+                match key.as_str() {
 
-                // match key {
-                //     // std::string::String::from("hello") => {}
-                // };
+                    "color" => {
+                        // we want the application to panic if the provided color is not correct
+                        // and to give the default rgb colros (100, 100, 100)
+                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                            "The 'color' value is not valid, please consider checking the config file \
+                              under [Timer]"
+                        )).unwrap_or_else(|| (100,100,100));
 
+                        style.fg(tui::style::Color::Rgb(r, g, b));
+                    },
+
+                    "title" => {
+                        // toreturn.text(value.to_string());
+                        title = value.to_string();
+                    }
+                    "background_color" => {
+                        // we want the application to panic if the provided color is not correct
+                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                            "The 'background color' value is not valid, please consider checking the config file \
+                              under [Timer]"
+                        )).unwrap_or_else(|| (0,0,0));
+
+                        style.fg(tui::style::Color::Rgb(r, g, b));
+                    },
+
+                    "width" => {
+                        match  value.as_float() {
+
+                            Some(W) => {
+                                let conv = W * 100 as f64;
+                                width = fixer.wratio(conv as u16);
+                            },
+                            None => {
+
+                                w_flag = true;
+                            }
+                        }
+
+                        if w_flag {
+
+                            match value.as_integer() {
+                                Some(W) => {
+                                    width = W as u16;
+                                },
+                                None => {panic!("error parsing the 'width' property of [Timer]")}
+                            }
+
+                        }
+
+                    },
+                    "height" => {
+
+                        match  value.as_float() {
+                            Some(H) => {
+                                let conv = H * 100 as f64;
+                                height = fixer.hratio(conv as u16);
+                            },
+                            None => {
+                                h_flag = true;
+                            }
+                        }
+
+                        if h_flag {
+
+                            match value.as_integer() {
+                                Some(H) => {
+                                    height = H as u16;
+                                },
+                                None => {panic!("error parsing the 'height' property of [Timer]")}
+                            }
+
+                        }
+
+                    },
+                    "x" => {
+
+                        match  value.as_float() {
+                            Some(X) => {
+                                let conv = X * 100 as f64;
+                                x = fixer.xratio(conv as u16);
+                            },
+                            None => {x_flag = true;}
+                        }
+
+                        if x_flag {
+                            println!("{}", value.as_integer().unwrap());
+
+                            match value.as_integer() {
+                                Some(X) => {
+                                    x = X as u16;
+                                },
+                                None => {panic!("error parsing the 'x' property of [Timer]")}
+                            }
+
+                        }
+
+                    },
+                    "y" => {
+
+                        match value.as_float() {
+                            Some(Y) => {
+                                let conv = Y * 100 as f64;
+                                y = fixer.xratio(conv as u16);
+                            },
+                            None => {y_flag = true;}
+                        }
+
+                        if y_flag {
+
+                            match value.as_integer() {
+                                Some(Y) => {
+                                    y = Y as u16;
+                                },
+                                None => {panic!("error parsing the 'y' property of [Timer]")}
+                            }
+
+                        }
+                    }
+                    _ => {}
+
+                }
+                
             }
 
+            // TODO need to implement the onclick behavior
+            return toreturn
+                .style(style)
+                .text(title)
+                .layout(x, y, width, height)
+                .widget(buttonWidget);
+
         },
-
         _ => {}
-        
-    };
 
-    Timer::default()
+    }
+
+    
+    return toreturn;
+
 }
 
+/// TODO
+fn construct_Timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>){}
+fn construct_StatefullButton_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>){}
 
 mod Test{
     use std::io::stdout;

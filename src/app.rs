@@ -200,7 +200,7 @@ impl App {
         let mut onclick = |rect: Rect, buf:&mut Buffer, st:&mut State::State|{};
 
         let button: StatefullButton = StatefullButton::default()
-            .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
+           .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
             .widget(
                 ButtonWidget::default()
                     .style(
