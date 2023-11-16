@@ -26,7 +26,7 @@ use crate::displayable::Displayable;
 ///   widget: Block<'B>,
 ///   onhover: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 ///   onclick: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
-pub struct StatefullButton<'B> where {
+pub struct Button<'B> where {
     /// frame that constains the button
     frame: Rect,
     /// the area in which the button is displayed
@@ -42,7 +42,7 @@ pub struct StatefullButton<'B> where {
     onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
 }
 
-impl<'B> Debug for StatefullButton<'B> {
+impl<'B> Debug for Button<'B> {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("frame")
@@ -70,14 +70,14 @@ impl<'B> Debug for StatefullButton<'B> {
 //  -----------------
 // The big one is the frame and the smaller is the layout
 
-impl<'B> Default for StatefullButton<'B> {
+impl<'B> Default for Button<'B> {
 
     fn default() -> Self {
 
         let backend = CrosstermBackend::new(io::stdout());
         let mut terminal = Terminal::new(backend).unwrap();
 
-        StatefullButton{
+        Button{
             frame: terminal.size().unwrap(), 
             layout: Rect::new(1, 1, 1, 1), 
             widget: ButtonWidget::default(),
@@ -89,7 +89,7 @@ impl<'B> Default for StatefullButton<'B> {
 
 }
 
-impl<'B> StatefulWidget for StatefullButton<'B> {
+impl<'B> StatefulWidget for Button<'B> {
 
     type State = State;
 
@@ -182,16 +182,16 @@ impl<'B> StatefulWidget for StatefullButton<'B> {
 
 }
 
-impl<'B> StatefullButton<'B>{
+impl<'B> Button<'B>{
 
     pub fn new<'b, F>(frame: Rect, layout: Rect, widget: ButtonWidget<'b>,
         onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
         onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
-    )-> StatefullButton<'b>{
+    )-> Button<'b>{
 
         match compare_rect(&layout, &frame){
             Ok(_)=>{
-                StatefullButton{frame, layout, widget,  onclick, onhover}
+                Button{frame, layout, widget,  onclick, onhover}
             },
             Err(msg)=>{
                 panic!("following erro occured with widget {:?}\n{}", layout, msg)
@@ -203,7 +203,7 @@ impl<'B> StatefullButton<'B>{
     pub fn layout(
         mut self, x: u16, y: u16,
         width: u16, height: u16,
-    ) -> StatefullButton<'B>{
+    ) -> Button<'B>{
 
         let mut layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){
@@ -221,22 +221,22 @@ impl<'B> StatefullButton<'B>{
     /// this represent the appearence of the widget
     pub fn widget(
         mut self, widget: ButtonWidget<'B>
-    ) -> StatefullButton<'B>{
+    ) -> Button<'B>{
         self.widget = widget;
         self
     }
 
     /// under development
-    pub fn style(mut self, widgetstyle: Style) -> StatefullButton<'B>{
+    pub fn style(mut self, widgetstyle: Style) -> Button<'B>{
         // self.style = widgetstyle;
         self
     }
 
     /// UnderDevelopment
     /// sets the text of the widget
-    pub fn text(mut self, text: String) -> StatefullButton<'B> {self}
+    pub fn text(mut self, text: String) -> Button<'B> {self}
 
-    pub fn onclick<T>(mut self, onclick: &'B mut T) -> StatefullButton<'B> where
+    pub fn onclick<T>(mut self, onclick: &'B mut T) -> Button<'B> where
         T: FnMut(Rect, &mut Buffer, &mut State)
     {
         self.onclick = Some(
@@ -245,7 +245,7 @@ impl<'B> StatefullButton<'B>{
         self
     }
 
-    pub fn onhover<T>(mut self, onhover: &'B mut T) -> StatefullButton<'B> where
+    pub fn onhover<T>(mut self, onhover: &'B mut T) -> Button<'B> where
         T: FnMut(Rect, &mut Buffer, &mut State)
     {
         self.onhover = Some(
@@ -270,7 +270,7 @@ impl<'B> StatefullButton<'B>{
 
 }
 
-impl<'B> Displayable for  StatefullButton<'B>{
+impl<'B> Displayable for  Button<'B>{
 
     fn manage_state(&self, state: &mut crate::State::State) {
         todo!()
@@ -296,7 +296,7 @@ impl<'B> Displayable for  StatefullButton<'B>{
 
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ButtonState{
     hovered: bool,
     clicked: bool,

@@ -101,6 +101,8 @@ impl<'a, B: Backend> Fixer<'a, B> {
 
     }
 
+    // TODO this should be normalized, as it took the provided width value
+    // as the real width instead of providing a percentage of the frame width
     pub fn wratio(&mut self, width: u16) -> u16{
 
         if width == 0{return 0}
@@ -108,14 +110,18 @@ impl<'a, B: Backend> Fixer<'a, B> {
         let size = self.frame.size();
 
         let width_rect = size.width;
+
         let x_rect = size.x;
         let width_bound = width_rect + x_rect;
 
-        if width > width_bound {
-            panic!("width out of bound\n
-                provided {} but expected a number less than {}", width, width_rect);
-        }
+
         let fwidth:f32 = width_rect as f32 / 100 as f32 * width as f32;
+
+        if fwidth as u16 > width_bound {
+            panic!("width out of bound\n");
+            //     provided {} but expected a number less than {}", width, width_rect
+            // );
+        }
 
         let uwidth:u16 = fwidth as u16;
 
@@ -123,6 +129,8 @@ impl<'a, B: Backend> Fixer<'a, B> {
 
     }
 
+    // TODO this should be normalized, as it took the provided height value
+    // as the real height instead of providing a percentage of the frame height
     pub fn hratio(&mut self, height: u16) -> u16{
 
         if height == 0{return 0}
@@ -133,12 +141,13 @@ impl<'a, B: Backend> Fixer<'a, B> {
         let y_rect = size.y;
         let height_bound = height_rect + y_rect;
 
-        if height > height_bound {
+
+        let fheight:f32 = height_bound as f32 / 100 as f32 * height as f32;
+
+        if fheight as u16 > height_bound {
             panic!("width out of bound\n
                 provided {} but expected a number less than {}", height, height_bound);
         }
-
-        let fheight:f32 = height_bound as f32 / 100 as f32 * height as f32;
 
         let uheight:u16 = fheight as u16;
 

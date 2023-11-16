@@ -7,8 +7,9 @@ use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
-use crate::stateful_button::ButtonState;
-use crate::{displayable::Displayable, config::Config, State::State, statefull_timer::Timer, stateful_button::StatefullButton, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
+use crate::stateful_button::{ButtonState, Button};
+use crate::timer_state::TimerState;
+use crate::{displayable::Displayable, config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
 
 pub struct Constructor;
 
@@ -121,15 +122,20 @@ pub fn constructor<'a>(config: &Config, term: &mut Terminal<CrosstermBackend<Std
 
     truck(config, term);
 
-    return vec![Box::new(Timer::default()), Box::new(StatefullButton::default())];
+    return vec![Box::new(Timer::default()), Box::new(Button::default())];
 
 }
 
-pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec<(Box<State>, Box<dyn Displayable>)>{
+pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec<(Box<dyn Displayable>, Box<State>)>{
 
     let timer_string = String::from("Timer");
     let button_string = String::from("Button");
     let toreturn: Vec<(Box<State>, Box<dyn Displayable>)>;
+
+    let mut timer = Timer::default();
+    let mut timer_state = State::default();
+    let mut button = Button::default();
+    let mut button_state = State::default();
 
     match conf.conf.clone() {
 
@@ -140,11 +146,13 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
                 match key.as_str() {
 
                     timer_string => {
-                        construct_timer(val, term);
+                        timer = construct_timer(val, term);
+                        timer_state = construct_timer_state(val, term);
                         // toreturn.push(timer_state_consturct(val), timer_construct(val))
                     },
                     button_string => {
-                        construct_button(val, term);
+                        button = construct_button(val, term);
+                        button_state = construct_button_state(val, term);
                         // toreturn.push(button_state_consturct(val), button_construct(val))
                     }
                     _ => {}
@@ -153,6 +161,11 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
 
             }
 
+            return vec![
+                (Box::new(timer), Box::new(timer_state)), 
+                (Box::new(button), Box::new(button_state))
+            ];
+
         }
 
         _ => {}
@@ -160,8 +173,8 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
     }
 
     return vec![
-        (Box::new(State::default()), Box::new(Timer::default())),
-        (Box::new(State::default()), Box::new(StatefullButton::default())),
+        (Box::new(Timer::default()), Box::new(State::default())),
+        (Box::new(Button::default()), Box::new(State::default())),
     ];
 
 }
@@ -253,7 +266,8 @@ fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
                     },
                     "height" => {
 
-                        match  value.as_float() {
+                        // if the provided height is a percentage
+                        match value.as_float() {
                             Some(H) => {
                                 let conv = H * 100 as f64;
                                 height = fixer.hratio(conv as u16);
@@ -345,10 +359,10 @@ fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
 /// Constructs the `StatefullButton` widget based on the `Values` provided on the `values` parameter.
 /// returns a `StatefullButton`
 fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>)
-    -> StatefullButton<'b>
+    -> Button<'b>
 {
 
-    let toreturn = StatefullButton::default();
+    let toreturn = Button::default();
     let style = Style::default();
     let buttonWidget = ButtonWidget::default();
 
@@ -356,10 +370,6 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
     let mut w_flag = false;
     let mut x_flag = false;
     let mut y_flag = false;
-
-    // desired timer and it's internals
-    // let toreturn = Timer::default();
-    // let timer_widget = TimerWidget::default();
 
     let binding = term.get_frame();
     let mut fixer = Fixer::new(&binding);
@@ -384,7 +394,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                         // and to give the default rgb colros (100, 100, 100)
                         let (r,g,b) = hex_to_rgb(value.as_str().expect(
                             "The 'color' value is not valid, please consider checking the config file \
-                              under [Timer]"
+                              under [Button]"
                         )).unwrap_or_else(|| (100,100,100));
 
                         style.fg(tui::style::Color::Rgb(r, g, b));
@@ -398,7 +408,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                         // we want the application to panic if the provided color is not correct
                         let (r,g,b) = hex_to_rgb(value.as_str().expect(
                             "The 'background color' value is not valid, please consider checking the config file \
-                              under [Timer]"
+                              under [Button]"
                         )).unwrap_or_else(|| (0,0,0));
 
                         style.fg(tui::style::Color::Rgb(r, g, b));
@@ -423,7 +433,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                                 Some(W) => {
                                     width = W as u16;
                                 },
-                                None => {panic!("error parsing the 'width' property of [Timer]")}
+                                None => {panic!("error parsing the 'width' property of [Button]")}
                             }
 
                         }
@@ -447,7 +457,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                                 Some(H) => {
                                     height = H as u16;
                                 },
-                                None => {panic!("error parsing the 'height' property of [Timer]")}
+                                None => {panic!("error parsing the 'height' property of [Button]")}
                             }
 
                         }
@@ -470,7 +480,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                                 Some(X) => {
                                     x = X as u16;
                                 },
-                                None => {panic!("error parsing the 'x' property of [Timer]")}
+                                None => {panic!("error parsing the 'x' property of [Button]")}
                             }
 
                         }
@@ -492,7 +502,7 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
                                 Some(Y) => {
                                     y = Y as u16;
                                 },
-                                None => {panic!("error parsing the 'y' property of [Timer]")}
+                                None => {panic!("error parsing the 'y' property of [Button]")}
                             }
 
                         }
@@ -512,19 +522,24 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
 
         },
         _ => {}
-
     }
 
-    
     return toreturn;
 
 }
 
 /// TODO
-fn construct_Timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>){}
-fn construct_StatefullButton_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>){}
+fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+    State::default()
+}
+
+fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+    State::default()
+}
 
 mod Test{
+    
+    #![allow(unused_imports)]
     use std::io::stdout;
 
     use crossterm::terminal;
@@ -541,13 +556,13 @@ mod Test{
             [Timer]
               color = '#000000'
               width = 0.5
-              height = 0.4
+              height = 0.2
               x = 10
-              y = 40
+              y = 10
             [Button]
               color = '#000000'
               width = 0.5
-              height = 0.4
+              height = 0.3
               x = 20
               y = 10
             [Widget]
@@ -566,5 +581,6 @@ mod Test{
         println!("from constructor:\n{:?}", constructor(&conf, &mut terminal));
 
     }
+
 
 }

@@ -10,10 +10,10 @@ use tui::{
 };
 
 use crate::{
-    stateful_button::{StatefullButton, ButtonState}
-    ,button::Button, button_widget::ButtonWidget, statefull_timer::Timer,
+    stateful_button::{Button, ButtonState}
+    ,button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
     timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::{Screen, self}, config::Config, directions::Directions, constructor::constructor, State, state
+    displayable::Displayable, screen::{Screen, self}, config::Config, directions::Directions, constructor::{constructor, truck}, State, state
 };
 
 /// widget
@@ -188,8 +188,9 @@ impl App {
 
     // }
 
+    // TODO loop through the provided widgets and states paires and display thme accordingly
     /// NOTE the config parameter should become a JsonValue
-    pub fn renderui<'a, B>(f: & mut Frame<'a ,B>, widgets:&mut Vec<Box<dyn Displayable>>, timerstate: &mut State::State) where
+    pub fn renderui<'a, B>(f: & mut Frame<'a ,B>, widgets:&mut Vec<(Box<dyn Displayable>, Box<State::State>)>, timerstate: &mut State::State) where
         B: Backend,
     {
 
@@ -199,8 +200,8 @@ impl App {
         let mut onhover = |rect: Rect, buf:&mut Buffer, st:&mut State::State|{};
         let mut onclick = |rect: Rect, buf:&mut Buffer, st:&mut State::State|{};
 
-        let button: StatefullButton = StatefullButton::default()
-           .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
+        let button: Button = Button::default()
+            .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
             .widget(
                 ButtonWidget::default()
                     .style(
@@ -349,6 +350,8 @@ impl App {
 
         let mut widgets = constructor(&conf, &mut terminal);
 
+        let mut widdget_state_params = truck(&conf, &mut terminal);
+
         // let filtered_conf = config.filter(&vec!["Timer", "Button", "Counter"]);
 
         // let default = config.filter(&vec!["default"]);
@@ -359,7 +362,7 @@ impl App {
 
             terminal.draw(|f| {
 
-                App::renderui::<CrosstermBackend<Stdout>>(f, &mut widgets, &mut timerstate);
+                App::renderui::<CrosstermBackend<Stdout>>(f, &mut widdget_state_params, &mut timerstate);
 
             })?;
 

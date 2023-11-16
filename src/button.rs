@@ -11,7 +11,7 @@ use crate::capabilities::compare_rect;
 //ToDo: implement default
 //ToDo: add layout and style
 #[derive(Debug)]
-pub struct Button<'B>{
+pub struct Cadre<'B>{
     frame: Rect,
     layout: Rect,
     widget: Block<'B>
@@ -30,14 +30,14 @@ pub struct Button<'B>{
 //  -----------------
 // The big one is the frame and the smaller is the layout
 
-impl<'B> Default for Button<'B> {
+impl<'B> Default for Cadre<'B> {
 
     fn default() -> Self {
 
         let backend = CrosstermBackend::new(io::stdout());
         let mut terminal = Terminal::new(backend).unwrap();
 
-        Button{
+        Cadre{
             frame: terminal.size().unwrap(), 
             layout: Rect::new(0, 0, 20, 10), 
             widget: Block::default(),
@@ -47,14 +47,14 @@ impl<'B> Default for Button<'B> {
 
 }
 
-impl<'B> Button<'B>{
+impl<'B> Cadre<'B>{
 
     /// returns a Button instance
-    pub fn new<'b>(frame: Rect, layout: Rect, widget: Block<'b>) -> Button<'b>{
+    pub fn new<'b>(frame: Rect, layout: Rect, widget: Block<'b>) -> Cadre<'b>{
 
         match compare_rect(&layout, &frame){
             Ok(_)=>{
-                Button{ frame, layout, widget }
+                Cadre{ frame, layout, widget }
             },
             Err(msg)=>{
                 panic!("following erro occured with widget {:?}\n{}", layout, msg)
@@ -66,7 +66,7 @@ impl<'B> Button<'B>{
     pub fn layout(
         mut self, x: u16, y: u16,
         width: u16, height: u16,
-    ) -> Button<'B>{
+    ) -> Cadre<'B>{
 
         let mut layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){
@@ -86,7 +86,7 @@ impl<'B> Button<'B>{
         mut self, bg: Color, fg: Color, 
         modifier: Modifier, title: String,
         borders: Borders
-    ) -> Button<'B>{
+    ) -> Cadre<'B>{
         self.widget = Block::default()
             .style(
                 Style::default()
