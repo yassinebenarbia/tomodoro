@@ -1,4 +1,4 @@
-use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug, Formatter}, any::{self, Any}, io::Stdout, default, cmp::Ordering, collections::HashMap};
+use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug, Formatter}, any::{self, Any}, io::Stdout, default, cmp::Ordering, collections::HashMap, ops::Deref};
 use std::io;
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, DisableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, cursor::MoveUp};
 use json::JsonValue;
@@ -6,14 +6,14 @@ use tui::{
     backend::{Backend, CrosstermBackend},
     widgets::{Borders, BorderType, Block, StatefulWidget},
     layout::Rect,
-    Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
+    Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal, terminal,
 };
 
 use crate::{
     stateful_button::{Button, ButtonState}
     ,button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
     timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::{Screen, self}, config::Config, directions::Directions, constructor::{constructor, truck}, State, state
+    displayable::Displayable, screen::{Screen, self, Compounder}, config::Config, directions::Directions, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, state, trait_holder::TraitHolder
 };
 
 /// widget
@@ -73,6 +73,9 @@ impl Displayable for Dumy {
     fn manage_state(&self, state: &mut crate::State::State) {
         
     }
+    fn layout(&self)->Rect {
+        Rect { x: self.x, y: self.y, width: 0, height: 0 }
+    }
 }
 
 pub struct App {
@@ -81,148 +84,25 @@ pub struct App {
 
 impl App {
 
-    // TODO: set the ui such that it can have mutable and immutable reference to f simultaniously,
-    // if possible
-    // pub fn ui<'a ,B: Backend>(f: & mut Frame<'a ,B>, timerstate: &mut TimerState) {
-
-    //     let mut fixer = Fixer::new(f);
-
-    //     let button2 = Button::default()
-    //         .widget(
-    //             Color::LightRed, Color::LightMagenta, Modifier::BOLD,
-    //             String::from("stuff"), Borders::ALL
-    //         ).layout(1, 1, 10, 10);
-
-    //     // f.render_widget(button2.get_widget(), button2.get_layout());
-
-    //     // unimplemented!
-    //     let mut onhover = |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
-    //     let mut onclick= |rect: Rect, buf:&mut Buffer, st:&mut ButtonState|{};
-
-    //     let button: StatefullButton = StatefullButton::default()
-    //         .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
-    //         .widget(
-    //             ButtonWidget::default()
-    //                 .style(
-    //                     Style::default()
-    //                         .fg(Color::Red)
-    //                         .bg(Color::Indexed(19))
-    //                 )
-    //                 .borders(Borders::ALL)
-    //                 .border_type(BorderType::Rounded)
-    //                 .title("some title".to_string())
-    //         )
-    //         .onhover(&mut onhover)
-    //         .onclick(&mut onclick);
-
-    //     let layout = button.get_layout().clone();
-
-    //     let mut state:ButtonState = ButtonState::new(true, true);
-
-
-
-    //     // // desired behavior
-    //     // // let app = App::new();
-    //     // // let tiemr_state: TimerState = TimerState::default();
-    //     // // app.set_state(timer_state);
-    //     // // loop {
-    //     // //     app.run()
-    //     // //     if q is clicked {
-    //     // //         app.quit()
-    //     // //     } else if smth else is clicked {
-    //     // //        app.do_smth_else();
-    //     // //     }
-    //     // // }
-
-    //     let timer:Timer = Timer::default()
-    //         .layout(fixer.xratio(40), fixer.yratio(30), fixer.wratio(10), fixer.hratio(10))
-    //         .widget(
-    //             TimerWidget::default()
-    //                 .style(
-    //                     Style::default()
-    //                         .fg(Color::Yellow)
-    //                         .bg(Color::Red)
-    //                 )
-    //                 .borders(Borders::ALL)
-    //                 .border_type(BorderType::Double)
-    //         )
-    //         .time(Duration::from_secs(1501));
-
-    //     // desired behavior
-    //     // .on_clock_tick() // here the closure should take 
-    //     // an instance of self, the Rectangle, the Buffer, and the BufferState respectively
-    //     // where as this will run every second
-    //     // .on_idle_state() // same goes for this
-    //     // this will run whenever the timer reaches 0
-    //     // NOTE: This conditions where should the closures run, is checked on the mail loop
-
-    //     let timer_layout = timer.layout.clone();
-
-
-    //     // f.render_widget(get_block(String::from("hello")), Rect::new(10, 10, 5, 5));
-    //     // f.render_widget(Timer, Timer_area);
-    //     // f.render_widget(Wall, Wall_area);
-    //     // f.render_widget(Button, Button_area);
-    //     let cycles_display = Block::default()
-    //         .title(timerstate.get_cycle().to_string())
-    //         .style(
-    //             Style::default()
-    //                 .fg(Color::Yellow)
-    //                 .bg(Color::Red)
-    //         );
-
-    //     f.render_widget(cycles_display, Rect::new(fixer.xratio(90) , fixer.yratio(1), fixer.wratio(5) , fixer.hratio(3)));
-
-    //     f.render_stateful_widget(
-    //         button,
-    //         layout,
-    //         &mut state
-    //     );
-
-    //     f.render_stateful_widget(
-    //         timer,
-    //         timer_layout,
-    //         timerstate,
-    //     );
-
-
-    // }
-
     // TODO loop through the provided widgets and states paires and display thme accordingly
     /// NOTE the config parameter should become a JsonValue
-    pub fn renderui<'a, B>(f: & mut Frame<'a ,B>, widgets:&mut Vec<(Box<dyn Displayable>, Box<State::State>)>, timerstate: &mut State::State) where
+
+    pub fn renderui<'a, B>(
+        f: & mut Frame<'a ,B>,
+        states: &mut Vec<State::State>,
+        conf:&Config
+    ) where
         B: Backend,
     {
+        let stdout = io::stdout();
+        let backend = CrosstermBackend::new(stdout);
+        let mut terminal = Terminal::new(backend).unwrap();
 
         let mut fixer = Fixer::new(f);
 
         // unimplemented!
         let mut onhover = |rect: Rect, buf:&mut Buffer, st:&mut State::State|{};
         let mut onclick = |rect: Rect, buf:&mut Buffer, st:&mut State::State|{};
-
-        let button: Button = Button::default()
-            .layout(fixer.xratio(40), fixer.yratio(40), fixer.wratio(10), fixer.hratio(10))
-            .widget(
-                ButtonWidget::default()
-                    .style(
-                        Style::default()
-                            .fg(Color::Red)
-                            .bg(Color::Indexed(19))
-                    )
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .title("some title".to_string())
-            )
-            .onhover(&mut onhover)
-            .onclick(&mut onclick);
-
-        let layout = button.get_layout().clone();
-
-        let mut button_hasmap = HashMap::new();
-        button_hasmap.insert("hovered".to_string(), "false".to_string());
-        button_hasmap.insert("clicked".to_string(), "false".to_string());
-
-        let mut state = State::State::new(button_hasmap);
 
         // // desired behavior
         // // let app = App::new();
@@ -237,59 +117,39 @@ impl App {
         // //     }
         // // }
 
-        let timer:Timer = Timer::default()
-            .layout(fixer.xratio(40), fixer.yratio(30), fixer.wratio(10), fixer.hratio(10))
-            .widget(
-                TimerWidget::default()
-                    .style(
-                        Style::default()
-                            .fg(Color::Yellow)
-                            .bg(Color::Red)
-                    )
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Double)
-            );
+        let timer = constructor::construct_timer(
+            &conf.filter(&vec!["Timer"]),
+            &mut terminal
+        );
+        
+        let button = constructor::construct_button(
+            &conf.filter(&vec!["Button"]),
+            &mut terminal
+        );
 
-        // desired behavior
-        // .on_clock_tick() // here the closure should take 
-        // an instance of self, the Rectangle, the Buffer, and the BufferState respectively
-        // where as this will run every second
-        // .on_idle_state() // same goes for this
-        // this will run whenever the timer reaches 0
-        // NOTE: This conditions where should the closures run, is checked on the mail loop
-
+        let button_layout = button.layout.clone();
         let timer_layout = timer.layout.clone();
 
 
-        // f.render_widget(get_block(String::from("hello")), Rect::new(10, 10, 5, 5));
-        // f.render_widget(Timer, Timer_area);
-        // f.render_widget(Wall, Wall_area);
-        // f.render_widget(Button, Button_area);
+        if let Some(value) = states.get_mut(0) {
 
-        // let cycles_display = Block::default()
-        //     .title(state.)
-        //     .style(
-        //         Style::default()
-        //             .fg(Color::Yellow)
-        //             .bg(Color::Red)
-        //     );
+            f.render_stateful_widget(
+                timer,
+                timer_layout,
+                value,
+            );
 
-        // f.render_widget(
-        //     cycles_display, 
-        //     Rect::new(fixer.xratio(90) , fixer.yratio(1), fixer.wratio(5) , fixer.hratio(3))
-        // );
+        }
 
-        f.render_stateful_widget(
-            button,
-            layout,
-            &mut state
-        );
+        if let Some(value) = states.get_mut(1) {
 
-        f.render_stateful_widget(
-            timer,
-            timer_layout,
-            timerstate,
-        );
+            f.render_stateful_widget(
+                button,
+                button_layout,
+                value,
+            );
+
+        }
 
     }
 
@@ -318,51 +178,36 @@ impl App {
         //     }
         // }
 
-        // TODO: should add a new countdown stopwatch and the couter should
-        // be independed from each others
-        // let mut timerstate: TimerState = TimerState::default()
-        //     .duration(Duration::from_secs(1500))
-        //     .displayed(Duration::from_secs(1500));
-        let mut timer_hash = HashMap::new();
+        let conf = Config::read();
 
-        timer_hash.insert("displayed".to_string(), 10.to_string());
-        timer_hash.insert("duration".to_string(), 10.to_string());
-        timer_hash.insert("cycles".to_string(), 0.to_string());
-        timer_hash.insert("max_cycles".to_string(), 1.to_string());
-        timer_hash.insert("prev_diff".to_string(), 0.to_string());
-        let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
-        timer_hash.insert("start".to_string(), current);
+        let timer_conf = conf.filter(&vec!["Timer"]);
+        let button_conf = conf.filter(&vec!["Button"]);
 
-        let mut timerstate: State::State = State::State::new(
-            timer_hash
+        let timer_rect = Compounder::get_rect(
+            &conf, String::from("Timer"), &mut terminal
+        );
+        let button_rect = Compounder::get_rect(
+            &conf, String::from("Button"), &mut terminal
         );
 
+        let timer_state = construct_timer_state(&timer_conf, &mut terminal);
 
-        // desired behavior
-        // let app = App::create(config_path);
-        // loop {
-        //  app.draw();
-        // }
+        let button_state = construct_button_state(&button_conf, &mut terminal);
+        // let compounder = Compounder::new(vec![(timer_conf, )])
 
-        let mut conf = Config::read();
-
-        let default = conf.filter(&vec!["Default"]);
-
-        let mut widgets = constructor(&conf, &mut terminal);
-
-        let mut widdget_state_params = truck(&conf, &mut terminal);
-
-        // let filtered_conf = config.filter(&vec!["Timer", "Button", "Counter"]);
-
-        // let default = config.filter(&vec!["default"]);
-
-        // let widgets_list = constructor(config);
+        let mut states = vec![
+            construct_timer_state(&timer_conf, &mut terminal),
+            construct_button_state(&button_conf, &mut terminal)
+        ];
 
         loop {
 
             terminal.draw(|f| {
 
-                App::renderui::<CrosstermBackend<Stdout>>(f, &mut widdget_state_params, &mut timerstate);
+                App::renderui::<CrosstermBackend<Stdout>>(f,
+                    &mut states,
+                    &conf,
+                );
 
             })?;
 
@@ -408,6 +253,7 @@ impl App {
             Directions::Down => {
 
                 todo!("this should select the left widget");
+
             },
             Directions::Righ => {
 

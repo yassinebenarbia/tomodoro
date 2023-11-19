@@ -108,6 +108,7 @@ impl<'a> Widget for ButtonWidget<'a> {
         }
 
         buf.set_style(area, self.style);
+
         let symbols = BorderType::line_symbols(self.border_type);
 
         if self.borders.intersects(Borders::LEFT) {

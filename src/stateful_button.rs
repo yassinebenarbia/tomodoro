@@ -13,6 +13,7 @@ use crate::State::State;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
 use crate::displayable::Displayable;
+use crate::trait_holder::{self, TraitHolder};
 
 //TODO: add layout and style
 //TODO: make a text struct that will held the text inside the button, if necessery
@@ -28,18 +29,18 @@ use crate::displayable::Displayable;
 ///   onclick: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 pub struct Button<'B> where {
     /// frame that constains the button
-    frame: Rect,
+    pub frame: Rect,
     /// the area in which the button is displayed
-    layout: Rect,
+    pub layout: Rect,
     /// how the button is displayed
     ///ToDo: change the name and the type, such that
     ///the new type implements the Widget trait, and can give access to
     ///it's style
-    widget: ButtonWidget<'B>,
+    pub widget: ButtonWidget<'B>,
     /// onhover closure, will fier whenever the hovered state of the ButtonState state is true
-    onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+    pub onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
     /// onclick closure, will fier whenever the clicked state of the ButtonState state is true
-    onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+    pub onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
 }
 
 impl<'B> Debug for Button<'B> {
@@ -98,9 +99,9 @@ impl<'B> StatefulWidget for Button<'B> {
         let x_mid:u16 = ((area.x + area.width) as i16 / 2 as i16) as u16;
         let y_mid:u16 = ((area.y + area.height) as i16 / 2 as i16) as u16;
 
-        let cell:Cell = Cell {
-            symbol: ".".to_string(), fg: Color::Red, bg: Color::Cyan, modifier: Modifier::BOLD 
-        };
+        // println!("red thing: {:?}", Color::Red);
+        // panic!();
+
 
         // buffer style
         buf.set_style(
@@ -201,11 +202,12 @@ impl<'B> Button<'B>{
 
     /// this represent the shape of the button
     pub fn layout(
-        mut self, x: u16, y: u16,
+        &mut self, x: u16, y: u16,
         width: u16, height: u16,
-    ) -> Button<'B>{
+    ) -> &mut Self{
 
         let mut layout = Rect::new(x, y, width, height);
+
         match compare_rect(&self.frame, &layout){
             Ok(_)=>{
                 self.layout = layout;
@@ -220,23 +222,25 @@ impl<'B> Button<'B>{
 
     /// this represent the appearence of the widget
     pub fn widget(
-        mut self, widget: ButtonWidget<'B>
-    ) -> Button<'B>{
+        &mut self, widget: ButtonWidget<'B>
+    ) -> &mut Self{
         self.widget = widget;
         self
     }
 
-    /// under development
-    pub fn style(mut self, widgetstyle: Style) -> Button<'B>{
-        // self.style = widgetstyle;
+    /// sets the widget `style`
+    pub fn style(&mut self, widgetstyle: Style) -> &mut Self{
+        self.widget.style = widgetstyle;
         self
     }
 
-    /// UnderDevelopment
     /// sets the text of the widget
-    pub fn text(mut self, text: String) -> Button<'B> {self}
+    pub fn text(&mut self, text: String) -> &mut Self {
+        self.widget.title = Some(text.into());
+        self
+    }
 
-    pub fn onclick<T>(mut self, onclick: &'B mut T) -> Button<'B> where
+    pub fn onclick<T>(& mut self, onclick: &'B mut T) -> &mut Self where
         T: FnMut(Rect, &mut Buffer, &mut State)
     {
         self.onclick = Some(
@@ -264,10 +268,6 @@ impl<'B> Button<'B>{
         self.layout.clone()
     }
 
-    // pub fn get_style(& self) ->Style{
-    //     // Style::default()
-    // }
-
 }
 
 impl<'B> Displayable for  Button<'B>{
@@ -294,7 +294,13 @@ impl<'B> Displayable for  Button<'B>{
         todo!()
     }
 
+    fn layout(&self)->Rect {
+        self.layout.clone()
+    }
+
 }
+
+impl<'B> TraitHolder for Button<'B>{}
 
 #[derive(Debug, Default)]
 pub struct ButtonState{

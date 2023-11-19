@@ -1,6 +1,4 @@
-use tui::{style::Style, widgets::{Borders, BorderType, Block}};
-
-use crate::displayable::Displayable;
+use tui::{style::Style, widgets::{Borders, BorderType}};
 
 #[derive(Debug, Clone)]
 /// this widget represent a timer widget as it holds:
@@ -37,17 +35,17 @@ impl TimerWidget {
         }
     }
 
-    pub fn style(mut self, style: Style) -> TimerWidget {
+    pub fn style(&mut self, style: Style) -> &mut Self{
         self.style = style;
         self
     }
 
-    pub fn borders(mut self, borders: Borders) -> TimerWidget {
+    pub fn borders(&mut self, borders: Borders) -> &mut Self {
         self.borders = borders;
         self
     }
 
-    pub fn border_type(mut self, border_typee: BorderType) -> TimerWidget {
+    pub fn border_type(&mut self, border_typee: BorderType) -> &mut Self{
         self.border_type = border_typee;
         self
     }

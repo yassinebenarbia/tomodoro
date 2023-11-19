@@ -1,15 +1,15 @@
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{fs::OpenOptions, io::Stdout};
-use std::io::Write;
 
 use toml::{Value, value::Time};
+use tui::layout::Rect;
 use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
 use crate::stateful_button::{ButtonState, Button};
-use crate::timer_state::TimerState;
-use crate::{displayable::Displayable, config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
+use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
 
 pub struct Constructor;
 
@@ -68,69 +68,16 @@ impl StatefulWidget for Thingy {
     
 }
 
-impl Displayable for Thingy{
-
-    fn x(&self) -> u16 {self.x}
-
-    fn y(&self) -> u16 {self.y}
-
-    fn width(&self) -> u16 {0}
-
-    fn height(&self) -> u16 {0}
-
-    fn highlight(&self) {}
-
-    fn manage_state(&self, state: &mut crate::State::State) {
-        
-    }
-
-}
-
-impl Displayable for Dumy {
-
-    fn x(&self) -> u16 {
-        self.x
-    }
-
-    fn y(&self) -> u16 {
-        self.y
-    }
-
-    fn width(&self) -> u16 {
-        0
-    }
-
-    fn height(&self) -> u16 {
-        0
-    }
-
-    fn highlight(&self) {}
-
-    fn manage_state(&self, state: &mut crate::State::State) {}
-
-}
-
 
 /// construct a vector of widgets based on the `widgets parameter`, where
 /// each widget implements the `Displayable trait
 /// TODO this should also provide the states
-pub fn constructor<'a>(config: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Vec<Box<dyn Displayable>>{
 
-    let prim_widgets = config.filter(&vec!["Timer", "Button"]);
-
-    // construct_Timer(config);
-
-    truck(config, term);
-
-    return vec![Box::new(Timer::default()), Box::new(Button::default())];
-
-}
-
-pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec<(Box<dyn Displayable>, Box<State>)>{
+pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)->
+Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
     let timer_string = String::from("Timer");
     let button_string = String::from("Button");
-    let toreturn: Vec<(Box<State>, Box<dyn Displayable>)>;
 
     let mut timer = Timer::default();
     let mut timer_state = State::default();
@@ -161,10 +108,24 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
 
             }
 
+            // return vec![
+            //     (Box::new(timer), Box::new(timer_state)), 
+            //     (Box::new(button), Box::new(button_state))
+            // ];
+
+            let timer_layout = timer.layout.clone();
+            let button_layout = button.layout.clone();
+
             return vec![
-                (Box::new(timer), Box::new(timer_state)), 
-                (Box::new(button), Box::new(button_state))
+                (Box::new(timer),Box::new(timer_layout), Box::new(timer_state)), 
+                (Box::new(button), Box::new(button_layout) ,Box::new(button_state))
             ];
+
+            // return vec![
+            //     (Box::new(timer), Box::new(timer_layout), Box::new(timer_state)), 
+            //     (Box::new(button), Box::new(timer_layou), Box::new(button_state))
+            // ];
+
 
         }
 
@@ -173,8 +134,8 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
     }
 
     return vec![
-        (Box::new(Timer::default()), Box::new(State::default())),
-        (Box::new(Button::default()), Box::new(State::default())),
+        (Box::new(Timer::default()), Box::new(Timer::default().layout), Box::new(State::default())),
+        (Box::new(Button::default()), Box::new(Timer::default().layout), Box::new(State::default())),
     ];
 
 }
@@ -185,7 +146,7 @@ pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)-> Vec
 
 /// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
 /// returns a `Timer`
-fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Timer{
+pub fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Timer{
 
     // in case one of the fields of the config isn't of type
     // float, we flag it as true to check for integer or else
@@ -198,8 +159,8 @@ fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
     // desired timer and it's internals
     let mut toreturn = Timer::default();
 
-    let timer_widget = TimerWidget::default();
-    let style = Style::default();
+    let mut timer_widget = TimerWidget::default();
+    let mut style = Style::default();
 
 
     let binding = term.get_frame();
@@ -212,139 +173,163 @@ fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
 
     match values {
 
+        // check if it's a table
         toml::Value::Table(table) => {
 
-            for (key, value) in table {
+            for (k, v) in table {
 
-                match key.as_str() {
+                match k.as_str() {
 
-                    "color" => {
-                        // we want the application to panic if the provided color is not correct
-                        // and to give the default rgb colros (100, 100, 100)
-                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
-                            "The 'color' value is not valid, please consider checking the config file \
-                              under [Timer]"
-                        )).unwrap_or_else(|| (100,100,100));
+                    // check for the Timer key
+                    "Timer"=>{
 
-                        style.fg(tui::style::Color::Rgb(r, g, b));
-                    },
+                        match v {
 
-                    "background_color" => {
-                        // we want the application to panic if the provided color is not correct
-                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
-                            "The 'background color' value is not valid, please consider checking the config file \
-                              under [Timer]"
-                        )).unwrap_or_else(|| (0,0,0));
+                            // the table of key values under the timer key
+                            toml::Value::Table(v) =>{
 
-                        style.fg(tui::style::Color::Rgb(r, g, b));
-                    },
+                                for (key, value) in v{
 
-                    "width" => {
-                        match  value.as_float() {
+                                    match key.as_str() {
 
-                            Some(W) => {
-                                let conv = W * 100 as f64;
-                                width = fixer.wratio(conv as u16);
-                            },
-                            None => {
+                                        "color" => {
+                                            // we want the application to panic if the provided color is not correct
+                                            // and to give the default rgb colros (100, 100, 100)
+                                            let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                                                "The 'color' value is not valid, please consider checking the config file \
+                                                    under [Timer]"
+                                            )).unwrap_or_else(|| (100,100,100));
 
-                                w_flag = true;
+                                            style = style.fg(tui::style::Color::Rgb(r, g, b));
+                                        },
+
+                                        "background_color" => {
+                                            // we want the application to panic if the provided color is not correct
+                                            let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                                                "The 'background color' value is not valid, please consider checking the config file \
+                                                    under [Timer]"
+                                            )).unwrap_or_else(|| (0,0,0));
+
+                                            style = style.bg(tui::style::Color::Rgb(r, g, b));
+                                        },
+
+                                        "width" => {
+                                            match  value.as_float() {
+
+                                                Some(W) => {
+                                                    let conv = W * 100 as f64;
+                                                    width = fixer.wratio(conv as u16);
+                                                },
+                                                None => {
+
+                                                    w_flag = true;
+                                                }
+                                            }
+
+                                            if w_flag {
+
+                                                match value.as_integer() {
+                                                    Some(W) => {
+                                                        width = W as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'width' property of [Timer]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "height" => {
+
+                                            // if the provided height is a percentage
+                                            match value.as_float() {
+                                                Some(H) => {
+                                                    let conv = H * 100 as f64;
+                                                    height = fixer.hratio(conv as u16);
+                                                },
+                                                None => {
+                                                    h_flag = true;
+                                                }
+                                            }
+
+                                            if h_flag {
+
+                                                match value.as_integer() {
+                                                    Some(H) => {
+                                                        height = H as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'height' property of [Timer]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "x" => {
+
+                                            match  value.as_float() {
+                                                Some(X) => {
+                                                    let conv = X * 100 as f64;
+                                                    x = fixer.xratio(conv as u16);
+                                                },
+                                                None => {x_flag = true;}
+                                            }
+
+                                            if x_flag {
+
+                                                match value.as_integer() {
+                                                    Some(X) => {
+                                                        x = X as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'x' property of [Timer]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "y" => {
+
+                                            match value.as_float() {
+                                                Some(Y) => {
+                                                    let conv = Y * 100 as f64;
+                                                    y = fixer.yratio(conv as u16);
+                                                },
+                                                None => {y_flag = true;}
+                                            }
+
+                                            if y_flag {
+
+                                                match value.as_integer() {
+                                                    Some(Y) => {
+                                                        y = Y as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'y' property of [Timer]")}
+                                                }
+
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+
+                                }
+
                             }
+
+                            _=>{}
+                            
                         }
 
-                        if w_flag {
-
-                            match value.as_integer() {
-                                Some(W) => {
-                                    width = W as u16;
-                                },
-                                None => {panic!("error parsing the 'width' property of [Timer]")}
-                            }
-
-                        }
-
-                    },
-                    "height" => {
-
-                        // if the provided height is a percentage
-                        match value.as_float() {
-                            Some(H) => {
-                                let conv = H * 100 as f64;
-                                height = fixer.hratio(conv as u16);
-                            },
-                            None => {
-                                h_flag = true;
-                            }
-                        }
-
-                        if h_flag {
-
-                            match value.as_integer() {
-                                Some(H) => {
-                                    height = H as u16;
-                                },
-                                None => {panic!("error parsing the 'height' property of [Timer]")}
-                            }
-
-                        }
-
-                    },
-                    "x" => {
-
-                        match  value.as_float() {
-                            Some(X) => {
-                                let conv = X * 100 as f64;
-                                x = fixer.xratio(conv as u16);
-                            },
-                            None => {x_flag = true;}
-                        }
-
-                        if x_flag {
-                            println!("{}", value.as_integer().unwrap());
-
-                            match value.as_integer() {
-                                Some(X) => {
-                                    x = X as u16;
-                                },
-                                None => {panic!("error parsing the 'x' property of [Timer]")}
-                            }
-
-                        }
-
-                    },
-                    "y" => {
-
-                        match value.as_float() {
-                            Some(Y) => {
-                                let conv = Y * 100 as f64;
-                                y = fixer.xratio(conv as u16);
-                            },
-                            None => {y_flag = true;}
-                        }
-
-                        if y_flag {
-
-                            match value.as_integer() {
-                                Some(Y) => {
-                                    y = Y as u16;
-                                },
-                                None => {panic!("error parsing the 'y' property of [Timer]")}
-                            }
-
-                        }
                     }
-                    _ => {}
+                    _=>{}
                 }
                 
             }
 
+            timer_widget.style = style;
+            timer_widget.borders = Borders::ALL;
+            timer_widget.border_type = BorderType::Rounded;
+
             return toreturn
                 .layout(x, y, width, height)
-                .widget(
-                    timer_widget.style(style)
-                        .borders(Borders::ALL)
-                        .border_type(BorderType::Double)
-                );
+                .widget(timer_widget).to_owned();
 
         }
 
@@ -358,13 +343,13 @@ fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>
 
 /// Constructs the `StatefullButton` widget based on the `Values` provided on the `values` parameter.
 /// returns a `StatefullButton`
-fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>)
+pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>)
     -> Button<'b>
 {
 
-    let toreturn = Button::default();
-    let style = Style::default();
-    let buttonWidget = ButtonWidget::default();
+    let mut toreturn = Button::default();
+    let mut style = Style::default();
+    let mut button_widget = ButtonWidget::default();
 
     let mut h_flag = false;
     let mut w_flag = false;
@@ -383,158 +368,275 @@ fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend<Std
 
     match values {
 
+        // if the there is a table 
         toml::Value::Table(table) => {
 
             for (key, value) in table {
 
                 match key.as_str() {
 
-                    "color" => {
-                        // we want the application to panic if the provided color is not correct
-                        // and to give the default rgb colros (100, 100, 100)
-                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
-                            "The 'color' value is not valid, please consider checking the config file \
-                              under [Button]"
-                        )).unwrap_or_else(|| (100,100,100));
+                    // the table head is a "Button"
+                    "Button"=>{
 
-                        style.fg(tui::style::Color::Rgb(r, g, b));
-                    },
+                        match value {
 
-                    "title" => {
-                        // toreturn.text(value.to_string());
-                        title = value.to_string();
+                            toml::Value::Table(v)=>{
+
+                                for (key, value) in v {
+
+                                    match key.as_str() {
+
+                                        "color" => {
+                                            // we want the application to panic if the provided color is not correct
+                                            // and to give the default rgb colros (100, 100, 100)
+                                            let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                                                "The 'color' value is not valid, please consider checking the config file \
+                                                    under [Button]"
+                                            )).unwrap_or_else(|| (100,100,100));
+
+                                            style = style.fg(tui::style::Color::Rgb(r, g, b));
+                                        },
+
+                                        "background_color" => {
+                                            // we want the application to panic if the provided color is not correct
+                                            let (r,g,b) = hex_to_rgb(value.as_str().expect(
+                                                "The 'background color' value is not valid, please consider checking the config file \
+                                                    under [Button]"
+                                            )).unwrap_or_else(|| (50,50,50));
+
+                                            style = style.bg(tui::style::Color::Rgb(r, g, b));
+                                        },
+
+                                        "title" => {
+                                            title = value.to_string();
+                                        }
+
+                                        "width" => {
+                                            match  value.as_float() {
+
+                                                Some(W) => {
+                                                    let conv = W * 100 as f64;
+                                                    width = fixer.wratio(conv as u16);
+                                                },
+                                                None => {
+
+                                                    w_flag = true;
+                                                }
+                                            }
+
+                                            if w_flag {
+
+                                                match value.as_integer() {
+                                                    Some(W) => {
+                                                        width = W as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'width' property of [Button]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "height" => {
+
+                                            match  value.as_float() {
+                                                Some(H) => {
+                                                    let conv = H * 100 as f64;
+                                                    height = fixer.hratio(conv as u16);
+                                                },
+                                                None => {
+                                                    h_flag = true;
+                                                }
+                                            }
+
+                                            if h_flag {
+
+                                                match value.as_integer() {
+                                                    Some(H) => {
+                                                        height = H as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'height' property of [Button]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "x" => {
+
+                                            match  value.as_float() {
+                                                Some(X) => {
+                                                    let conv = X * 100 as f64;
+                                                    x = fixer.xratio(conv as u16);
+                                                },
+                                                None => {x_flag = true;}
+                                            }
+
+                                            if x_flag {
+
+                                                match value.as_integer() {
+                                                    Some(X) => {
+                                                        x = X as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'x' property of [Button]")}
+                                                }
+
+                                            }
+
+                                        },
+                                        "y" => {
+
+                                            match value.as_float() {
+                                                Some(Y) => {
+                                                    let conv = Y * 100 as f64;
+                                                    y = fixer.yratio(conv as u16);
+                                                },
+                                                None => {y_flag = true;}
+                                            }
+
+                                            if y_flag {
+
+                                                match value.as_integer() {
+                                                    Some(Y) => {
+                                                        y = Y as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'y' property of [Button]")}
+                                                }
+
+                                            }
+                                        }
+                                        _ => {}
+
+                                    }
+
+
+                                }
+
+                            }
+
+                            _=>{}
+
+                        }
+
                     }
-                    "background_color" => {
-                        // we want the application to panic if the provided color is not correct
-                        let (r,g,b) = hex_to_rgb(value.as_str().expect(
-                            "The 'background color' value is not valid, please consider checking the config file \
-                              under [Button]"
-                        )).unwrap_or_else(|| (0,0,0));
-
-                        style.fg(tui::style::Color::Rgb(r, g, b));
-                    },
-
-                    "width" => {
-                        match  value.as_float() {
-
-                            Some(W) => {
-                                let conv = W * 100 as f64;
-                                width = fixer.wratio(conv as u16);
-                            },
-                            None => {
-
-                                w_flag = true;
-                            }
-                        }
-
-                        if w_flag {
-
-                            match value.as_integer() {
-                                Some(W) => {
-                                    width = W as u16;
-                                },
-                                None => {panic!("error parsing the 'width' property of [Button]")}
-                            }
-
-                        }
-
-                    },
-                    "height" => {
-
-                        match  value.as_float() {
-                            Some(H) => {
-                                let conv = H * 100 as f64;
-                                height = fixer.hratio(conv as u16);
-                            },
-                            None => {
-                                h_flag = true;
-                            }
-                        }
-
-                        if h_flag {
-
-                            match value.as_integer() {
-                                Some(H) => {
-                                    height = H as u16;
-                                },
-                                None => {panic!("error parsing the 'height' property of [Button]")}
-                            }
-
-                        }
-
-                    },
-                    "x" => {
-
-                        match  value.as_float() {
-                            Some(X) => {
-                                let conv = X * 100 as f64;
-                                x = fixer.xratio(conv as u16);
-                            },
-                            None => {x_flag = true;}
-                        }
-
-                        if x_flag {
-                            println!("{}", value.as_integer().unwrap());
-
-                            match value.as_integer() {
-                                Some(X) => {
-                                    x = X as u16;
-                                },
-                                None => {panic!("error parsing the 'x' property of [Button]")}
-                            }
-
-                        }
-
-                    },
-                    "y" => {
-
-                        match value.as_float() {
-                            Some(Y) => {
-                                let conv = Y * 100 as f64;
-                                y = fixer.xratio(conv as u16);
-                            },
-                            None => {y_flag = true;}
-                        }
-
-                        if y_flag {
-
-                            match value.as_integer() {
-                                Some(Y) => {
-                                    y = Y as u16;
-                                },
-                                None => {panic!("error parsing the 'y' property of [Button]")}
-                            }
-
-                        }
-                    }
-                    _ => {}
-
+                    _=>{}
+                    
                 }
+
+
                 
             }
 
             // TODO need to implement the onclick behavior
-            return toreturn
-                .style(style)
-                .text(title)
+            // toreturn.widget.style = style;
+            // toreturn.widget.title = Some(title.into());
+
+            button_widget.style = style;
+            button_widget.title = Some(title.into());
+
+            toreturn
                 .layout(x, y, width, height)
-                .widget(buttonWidget);
+                .widget(button_widget);
+
+            return toreturn;
+
 
         },
+
         _ => {}
+
     }
 
     return toreturn;
 
 }
 
-/// TODO
-fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
-    State::default()
+/// construcuts `State` from the `values` paramater, or in another word
+/// from the config file
+/// This state is specifically desined for the `Timer` widget
+pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+
+    let mut state = State::default();
+    let mut timer_hashmap = HashMap::new();
+
+    // timer_hashmap.insert("default", value)
+
+    timer_hashmap.insert("displayed".to_string(), 20.to_string());
+    timer_hashmap.insert("duration".to_string(), 20.to_string());
+    timer_hashmap.insert("cycles".to_string(), 1.to_string());
+    timer_hashmap.insert("max_cycles".to_string(), 4.to_string());
+    timer_hashmap.insert("prev_diff".to_string(), 0.to_string());
+    let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
+    timer_hashmap.insert("start".to_string(), current);
+    timer_hashmap.insert("hovered".to_string(), "false".to_string());
+
+    match values{
+
+        toml::Value::Table(table) => {
+
+            for (key, value) in table {
+
+                match key.as_str() {
+
+                    "Timer" => {
+
+                        match value {
+
+                            toml::Value::Table(v)=>{
+
+                                for (key, value ) in v {
+
+                                    match key.as_str() {
+
+                                        "duration" => {
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "cycles" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                        },
+                                        "max_cycles" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                        }
+                                        _ => {}
+
+                                    }
+
+                                }
+
+                            }
+                            _ =>{}
+                            
+                        }
+
+                    },
+
+                    _ => {}
+
+
+                }
+
+            }
+
+        },
+
+        _ => {}
+
+    };
+
+    state.states = timer_hashmap;
+    state
+
 }
 
-fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
-    State::default()
+pub fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+
+    let mut state = State::default();
+    let mut button_hasmap = HashMap::new();
+
+    button_hasmap.insert("clicked".to_string(), "false".to_string());
+    button_hasmap.insert("hovered".to_string(), "false".to_string());
+
+    state.states = button_hasmap;
+
+    return state;
 }
 
 mod Test{
@@ -546,8 +648,6 @@ mod Test{
     use tui::{Terminal, backend::CrosstermBackend};
 
     use crate::config::Config;
-
-    use super::constructor;
 
     #[test]
     fn construction() {
@@ -578,9 +678,7 @@ mod Test{
         };
 
         let mut terminal = Terminal::new(CrosstermBackend::new(stdout())).unwrap();
-        println!("from constructor:\n{:?}", constructor(&conf, &mut terminal));
 
     }
-
 
 }

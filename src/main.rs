@@ -5,8 +5,9 @@ use once_cell::sync::Lazy;
 
 use app::App;
 use statefull_timer::Timer;
-use tui::widgets::{Widget, StatefulWidget, Sparkline};
 
+
+mod trait_holder;
 mod State;
 mod config;
 mod constructor;
@@ -28,6 +29,9 @@ mod state;
 
 
 fn main() -> Result<(), io::Error> {
+
+
+    // std::env::set_var("RUST_LOG", "info");
 
     let app = App::default();
     let state = app.run();

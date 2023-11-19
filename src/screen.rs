@@ -1,7 +1,7 @@
-use std::{fmt::Debug, cmp::Ordering, rc::Rc, ops::Deref};
-use tui::widgets;
+use std::{fmt::Debug, cmp::Ordering, rc::Rc, ops::Deref, io::Stdout};
+use tui::{widgets::{Widget, StatefulWidget, Sparkline}, layout::Rect, Terminal, backend::CrosstermBackend};
 
-use crate::displayable::Displayable;
+use crate::{displayable::Displayable, State, config::Config, widget_fixer::Fixer};
 
 // question:
 // does dealing with the widget inside the screen depend on the type of the widget, 
@@ -20,20 +20,26 @@ use crate::displayable::Displayable;
 // have a statefull widget that behave like stateless one, and not the other
 // way around
 #[derive(Debug, Clone)]
-pub struct WidgetWrapper<'a, T: Displayable>{
-        wrapped: T,
-        up: Option<&'a T>,
-        down: Option<&'a T>,
-        right: Option<&'a T>,
-        left: Option<&'a T>,
-    }
+pub struct WidgetWrapper<'a, T: StatefulWidget>{
+    wrapped: T,
+    up: Option<&'a T>,
+    down: Option<&'a T>,
+    right: Option<&'a T>,
+    left: Option<&'a T>,
+}
+
+
+impl<'a> StatetWrapper<'a> {
+
+    
+}
 
 /// This screen will act as a wrapper for all widgets, that triggers
 /// the highlight method for the selected widget and also will: 
 ///  - change the selected widget using a defined api of methods as dow(),
 /// up(), right() and left()
 /// - retrive the selected widget using the selected() method
-pub struct Screen<'w, T: Displayable + Debug + Clone> {
+pub struct Screen<'w, T: StatefulWidget + Debug + Clone> {
     widgets: Vec<WidgetWrapper<'w, T>>, 
     selected: u8,
 }
@@ -311,11 +317,183 @@ impl<'w, T> Screen<'w ,T>  where
 
 }
 
+pub struct StatetWrapper<'a>{
+    wrapped: State::State,
+    up: Option<&'a State::State>,
+    down: Option<&'a State::State>,
+    right: Option<&'a State::State>,
+    left: Option<&'a State::State>,
+}
+
+pub struct Compounder<'a>{
+    states: Vec<(StatetWrapper<'a>, Rect)>
+}
+
+impl<'a> Compounder<'a> {
+
+    pub fn new(states: Vec<(StatetWrapper<'a>, Rect)>) -> Compounder{
+        Compounder { states }
+    }
+
+    /// this should sort the states with respect to the Rect 
+    /// under development
+    pub fn sort(&mut self) {
+        
+    }
+
+    /// extract the corresponding rectangle of a widget from the config file
+    /// under development
+    pub fn get_rect(conf: &Config, widget: String, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Rect{
+
+        let mut toreturn = Rect { x: 0, y: 0, width: 0, height: 0 };
+
+        let binding = term.get_frame();
+        let mut fixer = Fixer::new(&binding);
+
+        let mut h_flag = false;
+        let mut w_flag = false;
+        let mut x_flag = false;
+        let mut y_flag = false;
+
+        match conf.conf.to_owned() {
+
+            toml::Value::Table(values)=>{
+
+                for (key, value) in values {
+
+                    if key.to_string() == widget {
+
+                        match value{
+
+                            toml::Value::Table(v)=>{
+
+                                for (key, value) in v {
+
+                                    match key.as_str() {
+                                        "x" =>{
+                                            match  value.as_float() {
+                                                Some(X) => {
+                                                    let conv = X * 100 as f64;
+                                                    toreturn.x = fixer.xratio(conv as u16);
+                                                },
+                                                None => {x_flag = true;}
+                                            }
+
+                                            if x_flag {
+
+                                                match value.as_integer() {
+                                                    Some(X) => {
+                                                        toreturn.x = X as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'x' property of [Button]")}
+                                                }
+
+                                            }
+                                        }
+                                        "y"=>{
+                                            match value.as_float() {
+                                                Some(Y) => {
+                                                    let conv = Y * 100 as f64;
+                                                    toreturn.y  = fixer.yratio(conv as u16);
+                                                },
+                                                None => {y_flag = true;}
+                                            }
+
+                                            if y_flag {
+
+                                                match value.as_integer() {
+                                                    Some(Y) => {
+                                                        toreturn.y = Y as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'y' property of [Button]")}
+                                                }
+
+                                            }
+                                        }
+
+                                        "width"=>{
+                                            match  value.as_float() {
+
+                                                Some(W) => {
+                                                    let conv = W * 100 as f64;
+                                                    toreturn.width = fixer.wratio(conv as u16);
+                                                },
+                                                None => {
+
+                                                    w_flag = true;
+                                                }
+                                            }
+
+                                            if w_flag {
+
+                                                match value.as_integer() {
+                                                    Some(W) => {
+                                                        toreturn.width = W as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'width' property of [Button]")}
+                                                }
+
+                                            }
+                                        }
+                                        "height"=>{
+                                            match  value.as_float() {
+                                                Some(H) => {
+                                                    let conv = H * 100 as f64;
+                                                    toreturn.height = fixer.hratio(conv as u16);
+                                                },
+                                                None => {
+                                                    h_flag = true;
+                                                }
+                                            }
+
+                                            if h_flag {
+
+                                                match value.as_integer() {
+                                                    Some(H) => {
+                                                        toreturn.height = H as u16;
+                                                    },
+                                                    None => {panic!("error parsing the 'height' property of [Button]")}
+                                                }
+
+                                            }
+                                        }
+                                        _=>{}
+                                    }
+                                    
+                                }
+
+                            }
+                            _=>{}
+
+                        }
+
+                        
+                    }
+                    
+                }
+
+            },
+            _=>{}
+            
+        }
+
+        toreturn
+
+    }
+    
+}
+
+
+
 mod Test{
 
-    use crate::app::Dumy;
+    use std::io::stdout;
 
-    use super::Screen;
+    use tui::{Terminal, backend::CrosstermBackend};
+
+    use crate::{app::Dumy, config::Config};
+
+    use super::{Screen, Compounder};
 
 
     #[test]
@@ -330,6 +508,17 @@ mod Test{
         let dumy1 = Dumy::new(4, 9);
         let dumy2 = Dumy::new(9, 9);
         // let screen = Screen::new(& vec![&dumy, &dumy1, &dumy2]);
+        
+    }
+
+    #[test]
+    fn rect_construction() {
+
+        let mut terminal = Terminal::new(CrosstermBackend::new(stdout())).unwrap();
+        let conf = Config::read();
+        let rect = Compounder::get_rect(&conf, String::from("Timer"), &mut terminal);
+        println!("{:?}", rect);
+
         
     }
 

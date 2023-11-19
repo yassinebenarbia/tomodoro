@@ -1,10 +1,10 @@
 use std::{
-    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}};
+    time::{Duration,SystemTime, UNIX_EPOCH}, io};
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, timer_state::TimerState, displayable::Displayable, State};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -54,6 +54,18 @@ impl StatefulWidget for Timer {
         if area.area() == 0 {
             return;
         }
+
+        // println!("{:?}", self.widget.style);
+        // panic!();
+
+        match state.states.get("hovred") {
+            Some(value) =>{
+                let fg = self.widget.style.fg.unwrap();
+                // self.time
+            },
+            None => {}
+        };
+
         buf.set_style(area, self.widget.style);
         // TODO: inspect what do this line do
         let symbols = BorderType::line_symbols(self.widget.border_type);
@@ -113,7 +125,7 @@ impl StatefulWidget for Timer {
         }
 
         // duration as a string
-        let s_duration = state.states.get("displayed").unwrap();
+        let s_duration = state.states.get("duration").unwrap();
         // converting the duration from a string to a u64 to a Duration
         let duration = Duration::from_secs(s_duration.parse::<u64>().unwrap());
         
@@ -153,6 +165,8 @@ impl StatefulWidget for Timer {
         // TODO: This should manage the time state, check timer_state.manage_state()
         // state.manage_state(|s|{});
 
+
+
         self.manage_state(state);
         
     }
@@ -185,6 +199,8 @@ impl Displayable for Timer {
         //{
         //  "start": "123456" // this is the duration in seconds format
         //}
+
+
         let start = state.get_states().get("start").expect("no start time is not provided");
 
         // duration from which the application started
@@ -245,12 +261,17 @@ impl Displayable for Timer {
         
     }
 
+    fn layout(&self)->Rect {
+        self.layout.clone()
+    }
+
 }
+
+impl TraitHolder for Timer{}
 
 impl Timer {
 
-    //
-    pub fn layout(mut self, x: u16, y: u16, width: u16, height: u16) -> Timer{
+    pub fn layout(&mut self, x: u16, y: u16, width: u16, height: u16) -> &mut Self{
         let layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){
             Ok(_)=>{
@@ -263,12 +284,12 @@ impl Timer {
         }
     }
 
-    pub fn widget(mut self, widget: TimerWidget) -> Timer{
+    pub fn widget(&mut self, widget: TimerWidget) -> &mut Self{
         self.widget = widget;
         self
     }
 
-    pub fn time(mut self, time: Duration) -> Timer{
+    pub fn time(&mut self, time: Duration) -> &mut Self{
         self.time = time;
         self
     }
@@ -286,6 +307,7 @@ impl Timer {
     }
 
 }
+
 mod Test{
 
 #[test]

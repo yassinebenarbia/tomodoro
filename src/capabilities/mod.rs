@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{time::Duration, ops::{Mul, Div}};
 
 use tui::layout::Rect;
 
@@ -80,11 +80,23 @@ pub fn is_float(string: &str) -> bool{
 
 }
 
+pub fn highlight_color(r: u8, g: u8, b: u8) -> (u8, u8, u8) {
+
+    let mut ratio:f32 = r.max(g).max(b) as f32 / 255 as f32;
+
+    println!("factor: {}", ratio);
+
+    let r = r + (r as f32 * ratio) as u8;
+    let g = g + (g as f32 * ratio) as u8;
+    let b = b + (b as f32 * ratio) as u8;
+
+    (r, g, b)
+}
 
 mod Test{
     use std::{time::Duration, thread::sleep};
 
-    use super::time_conversion;
+    use super::{time_conversion, hex_to_rgb, highlight_color};
 
     use std::time::SystemTime;
 
@@ -106,6 +118,33 @@ mod Test{
         let difference = new_sys_time.duration_since(sys_time)
             .expect("Clock may have gone backwards");
         println!("{difference:?}");
+    }
+
+    #[test]
+    fn hex_rgb_test(){
+
+        let hex = "#FFAAFF";
+        let rgb = hex_to_rgb(hex).unwrap();
+        assert_eq!(rgb, (255, 170, 255));
+
+        let hex = "#FFAAAA";
+        let rgb = hex_to_rgb(hex).unwrap();
+        assert_eq!(rgb, (255, 170, 170));
+
+        let hex = "#49A20A";
+        let rgb = hex_to_rgb(hex).unwrap();
+        assert_eq!(rgb, (73, 162, 10));
+
+
+    }
+
+    #[test]
+    fn heighlight_test(){
+
+        let result = highlight_color(40, 100, 90);
+        println!("{:?}", result);
+        assert_eq!(result, (55, 139, 125));
+
     }
 
 }
