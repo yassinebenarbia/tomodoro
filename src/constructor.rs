@@ -558,7 +558,6 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     let mut timer_hashmap = HashMap::new();
 
     // timer_hashmap.insert("default", value)
-
     timer_hashmap.insert("displayed".to_string(), 20.to_string());
     timer_hashmap.insert("duration".to_string(), 20.to_string());
     timer_hashmap.insert("cycles".to_string(), 1.to_string());
@@ -566,8 +565,9 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     timer_hashmap.insert("prev_diff".to_string(), 0.to_string());
     let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
     timer_hashmap.insert("start".to_string(), current);
-    timer_hashmap.insert("hovered".to_string(), "false".to_string());
+    timer_hashmap.insert("working".to_string(), "true".to_string());
 
+    // TODO add support of the working state for the config file
     match values{
 
         toml::Value::Table(table) => {
@@ -588,6 +588,7 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
 
                                         "duration" => {
                                             timer_hashmap.insert(key.to_string(), value.to_string());
+                                            timer_hashmap.insert("displayed".to_string(), value.to_string());
                                         },
                                         "cycles" => {
                                             timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());

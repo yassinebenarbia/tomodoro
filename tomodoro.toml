@@ -1,12 +1,12 @@
 [Timer]
   # widget collor, should be a string
-  color = '#FF0000'
+  color = '#FFFF00'
   # widget background color
   background_color = "#050399"
   # widget width, can be an integer or a float between 0 and 1
   width = 0.3
   # widget height, can be an integer or a float between 0 and 1
-  height = 0.1
+  height = 0.2
   # postion of the widget in x direction
   # can be an integer or a float between 0 and 1
   x = 0.35
@@ -24,18 +24,18 @@
 
 [Button]
   # widget collor, should be a string
-  color= "#AAFF00"
+  color= "#AABF20"
   # widget background color
-  background_color = "#ba4922"
+  background_color = "#B54929"
   # widget width, can be an integer or a float between 0 and 1
   width = 0.3
   # widget height, can be an integer or a float between 0 and 1
-  height = 10
+  height = 0.2
   # postion of the widget in x direction
   # can be an integer or a float between 0 and 1
   x = 0.35
   # postion of the widget in y direction
   # can be an integer or a float between 0 and 1
-  y = 0.53
+  y = 0.60
   # the text displayed inside the button
   title = "my_button"

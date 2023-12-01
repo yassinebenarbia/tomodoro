@@ -1,5 +1,6 @@
 use std::fmt::Debug;
-use std::io;
+use std::fs::OpenOptions;
+use std::io::{self, Write};
 use std::path::Display;
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
@@ -27,6 +28,8 @@ use crate::trait_holder::{self, TraitHolder};
 ///   widget: Block<'B>,
 ///   onhover: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 ///   onclick: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
+///   _*warning*_ : this will be removed, and replaced by a cycle
+///   counter
 pub struct Button<'B> where {
     /// frame that constains the button
     pub frame: Rect,
@@ -95,6 +98,9 @@ impl<'B> StatefulWidget for Button<'B> {
     type State = State;
 
     fn render(self, area: Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State){
+
+        // let mut log = OpenOptions::new().append(true).create(true).open("logs").unwrap();
+        // log.write(format!("{}\n",state.states.get("hovered").unwrap()).as_bytes());
 
         let x_mid:u16 = ((area.x + area.width) as i16 / 2 as i16) as u16;
         let y_mid:u16 = ((area.y + area.height) as i16 / 2 as i16) as u16;
