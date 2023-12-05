@@ -1,10 +1,10 @@
 use std::{
-    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}, fs::{File, OpenOptions}, fmt::Debug};
+    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}, fs::{File, OpenOptions}, fmt::Debug, ops::{Add, Sub}};
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{paused_duration, command, paused_start}};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{command, paused_duration, paused_start_time, d_paused_duration}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -143,10 +143,10 @@ impl StatefulWidget for Timer {
         // duration as a string
         let s_displayed = state.states.get("displayed").unwrap();
         // converting the duration from a string to a u64 to a Duration
-        let duration = Duration::from_secs(s_displayed.parse::<u64>().unwrap());
+        let displayed_duration = Duration::from_secs(s_displayed.parse::<u64>().unwrap());
         
         //TODO: move this call out of the rendering loop
-        let time = time_conversion(duration);
+        let time = time_conversion(displayed_duration);
 
         let time = Spans::from(vec![
             Span::styled(time, Style::default().fg(Color::Yellow))
@@ -181,12 +181,22 @@ impl StatefulWidget for Timer {
         // TODO: This should manage the time state, check timer_state.manage_state()
         // state.manage_state(|s|{});
 
-        if let Some(s) =  state.states.get("working") {
-            if s == "true" {
-                self.manage_state(state);
-            }else{
-                // let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
-                // state.states.insert("start".to_string(), current);
+
+        unsafe{
+            let start = paused_start_time.clone();
+
+            if let Some(s) =  state.states.get("working") {
+                // meaning that the timer should be working
+                if s == "true" {
+                    self.manage_state(state);
+                    d_paused_duration = Duration::ZERO;
+                    
+                // meaning that the timer should NOT be working
+                }else{
+                    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+                    d_paused_duration =  now - start;
+
+                }
             }
         }        
 
@@ -217,7 +227,6 @@ impl Displayable for Timer {
     fn manage_state(&self, state: &mut State::State) {
         unsafe{
 
-
             // accessing the start value for the state.states hashmap
             //{
             //  "start": "123456" // this is the duration in seconds format
@@ -226,25 +235,17 @@ impl Displayable for Timer {
             let start = state.get_states().get("start").expect("no start time is not provided");
 
             // duration from which the application started
+
             let start_duration = UNIX_EPOCH + Duration::from_secs(start.parse::<u64>().unwrap());
 
-            match command {
-                crate::directions::Commands::Stop =>{
-                    paused_duration +=  SystemTime::now().duration_since(UNIX_EPOCH).unwrap() - paused_start.clone(); 
-                }
-                crate::directions::Commands::Start=>{
-                    paused_duration = Duration::ZERO;
-                }
-                _=>{}
-            }
+            // let mut f = OpenOptions::new().create(true).append(true).open("log.txt").unwrap();
+            // f.write(format!("paused_duration: {:?}\n", final_paused_duration).as_bytes());
 
-            // difference between the current time and the started time as a second
-            // TODO: need to add the watied duration
             let mut diff = SystemTime::now()
-                .duration_since(start_duration - paused_duration)
+                // the displayed duration is the worked time plus the waited time
+                .duration_since(start_duration + d_paused_duration + paused_duration)
                 .expect("unable to manage time")
                 .as_secs();
-
 
             // meaning that time has advanced since the beginning of the counter
             // need to do a modulo opperation to get the number of cycles

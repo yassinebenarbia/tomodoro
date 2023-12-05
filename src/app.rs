@@ -20,9 +20,9 @@ use std::sync::Once;
 static INIT: Once = Once::new();
 
 pub static mut command: Commands = Commands::Start;
-pub static mut paused_duration: Duration = Duration::ZERO;
-pub static mut paused_start: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
-
+pub static mut paused_duration:Duration = Duration::ZERO ;
+pub static mut d_paused_duration:Duration = Duration::ZERO ;
+pub static mut paused_start_time: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 /// widget
 fn get_block<'a>(title: String) -> ButtonWidget<'a>{
     return ButtonWidget::default()
@@ -116,34 +116,6 @@ impl App {
                     Commands::Start=>{
                         state.states.insert("working".to_string(), "true".to_string());
                     },
- //                    Commands::Revert=>{
- //                        match state.states.get("working"){
- //                            None=>{
- //                                state.states.insert("working".to_string(), "true".to_string());
-
- //                            }
- //                            // need to calculate the stopped duration
- //                            // and then substract from the totale duration
- //                            Some(s)=>{
-
- //                                let mut fi = OpenOptions::new().append(true).write(true).create(true).open("log_start").unwrap();
- //                                fi.write(format!("{:?}\n", s.eq("true")).as_bytes());
-
- //                                if s.eq("true") {
- //                                    let mut pduration = state.states.get("pduration").unwrap().parse::<u32>().unwrap();
-
- //                                    let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
- //                                    let start = state.states.get("start").unwrap().parse::<u32>().unwrap();
- //                                    // let pduration = start.to_string();
-
- // 
- //                                    state.states.insert("working".to_string(), "false".to_string());
- //                                }else if s.eq("false") {
- //                                    state.states.insert("working".to_string(), "true".to_string());
- //                                }
- //                            }
- //                        }
- //                    }
 
                 }
 
@@ -308,10 +280,11 @@ impl App {
 
                 command_setter::Start => {
                     command = Commands::Start;
+                    paused_duration += d_paused_duration;
                 }
                 command_setter::Stop=>{
                     command = Commands::Stop;
-                    paused_start = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
+                    paused_start_time = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 
                     // paused_duration += SystemTime::now().duration_since(UNIX_EPOCH).unwrap()- paused_start.clone();
 
@@ -328,18 +301,17 @@ impl App {
 
                     match command{
 
+                        // meaning that the timer will STOP
                         Commands::Start => {
                             command = Commands::Stop;
+                            paused_start_time = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
                         }
+                        // meaning that the timer will START
                         Commands::Stop=>{
                             command = Commands::Start;
-                            paused_start = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
-                            // paused_duration += SystemTime::now().duration_since(UNIX_EPOCH).unwrap() - paused_start.clone();
+                            paused_duration += d_paused_duration;
                         }
-                        _=>{
-                            panic!("commmand shoult take either Commmand::Start or Commands::Stop\n");
-                        }
-                        
+
                     }
                 }
                 
