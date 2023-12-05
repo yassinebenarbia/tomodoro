@@ -16,7 +16,7 @@ use crate::directions::Commands;
 /// prev_diff: u32, holds the difference between the previous\
 /// and current frame in seconds
 /// start: u64(seconds), the systime since the application started
-/// duration: u32(seconds), the length of the cycle
+/// duration_duration: u32(seconds), the length of the "focus" cycle
 /// displayed: u32(seconds), this holds the displayed time buffer
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct State{

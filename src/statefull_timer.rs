@@ -4,7 +4,7 @@ use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{command, paused_duration, paused_start_time, d_paused_duration}};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{COMMAND, PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -51,7 +51,7 @@ impl StatefulWidget for Timer {
         // 1) substract time_step from the displayed time 
         // 2) render the widget
 
-        // let duration = state.get_states().get("duration").unwrap();
+        // let duration = state.get_states().get("focus_duration").unwrap();
         // let mut fi = OpenOptions::new().append(true).write(true).create(true).open("log_start").unwrap();
         // fi.write(format!("{:?}\n", duration).as_bytes());
 
@@ -183,18 +183,18 @@ impl StatefulWidget for Timer {
 
 
         unsafe{
-            let start = paused_start_time.clone();
+            let start = PAUSED_START_TIME.clone();
 
             if let Some(s) =  state.states.get("working") {
                 // meaning that the timer should be working
                 if s == "true" {
                     self.manage_state(state);
-                    d_paused_duration = Duration::ZERO;
+                    SMALL_PAUSED_DURATION = Duration::ZERO;
                     
                 // meaning that the timer should NOT be working
                 }else{
                     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-                    d_paused_duration =  now - start;
+                    SMALL_PAUSED_DURATION =  now - start;
 
                 }
             }
@@ -243,7 +243,7 @@ impl Displayable for Timer {
 
             let mut diff = SystemTime::now()
                 // the displayed duration is the worked time plus the waited time
-                .duration_since(start_duration + d_paused_duration + paused_duration)
+                .duration_since(start_duration + SMALL_PAUSED_DURATION + PAUSED_DURATION)
                 .expect("unable to manage time")
                 .as_secs();
 
@@ -258,22 +258,24 @@ impl Displayable for Timer {
                     .expect("couldn't load the prev_diff state of Timer")
                     .parse::<u64>().unwrap();
 
-                // the duration of the cycle
-                let displayed = state
+                let focus_duration = state
                     .get_states()
-                    .get("displayed")
-                    .expect("couldn't load the duration state of Timer")
+                    .get("focus_duration")
+                    .expect("couldn't load the focus_duration state of Timer")
                     .parse::<u64>().unwrap();
 
-                let duration = state
+                let rest_duration = state
                     .get_states()
-                    .get("duration")
-                    .expect("couldn't load the duration state of Timer")
+                    .get("rest_duration")
+                    .expect("couldn't load the rest_duration state of Timer")
                     .parse::<u64>().unwrap();
+
+                // let mut f = OpenOptions::new().create(true).append(true).open("log.txt").unwrap();
+                // f.write(format!("rest_duration: {:?}\n", rest_duration).as_bytes());
 
                 if prev_diff < diff {
 
-                    diff %= duration;
+                    diff %= focus_duration;
 
                     // if the time advanced to the point where there is a whole 1s diffrence between
                     // the current and previously calculated difference
@@ -282,14 +284,14 @@ impl Displayable for Timer {
                         diff.to_string()
                     );
 
-                    let displayed = (Duration::from_secs(duration) - Duration::from_secs(diff)).as_secs().to_string();
+                    let displayed = (Duration::from_secs(focus_duration) - Duration::from_secs(diff)).as_secs().to_string();
 
                     state.states.insert("displayed".to_string(), displayed);
 
                 }
 
                 // thus a full cycle is completed
-                if diff == duration - 1 && prev_diff < diff {
+                if diff == focus_duration - 1 && prev_diff < diff {
 
                     state.states.insert(String::from("prev_diff"), diff.to_string());
 

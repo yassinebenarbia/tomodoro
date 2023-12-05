@@ -559,7 +559,8 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
 
     // timer_hashmap.insert("default", value)
     timer_hashmap.insert("displayed".to_string(), 20.to_string());
-    timer_hashmap.insert("duration".to_string(), 20.to_string());
+    timer_hashmap.insert("focus_duration".to_string(), 1500.to_string());
+    timer_hashmap.insert("rest_duration".to_string(), 300.to_string());
     timer_hashmap.insert("cycles".to_string(), 1.to_string());
     timer_hashmap.insert("max_cycles".to_string(), 4.to_string());
     timer_hashmap.insert("prev_diff".to_string(), 0.to_string());
@@ -585,8 +586,10 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
                                 for (key, value ) in v {
 
                                     match key.as_str() {
-
-                                        "duration" => {
+                                        "rest_duration" => {
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "focus_duration" => {
                                             timer_hashmap.insert(key.to_string(), value.to_string());
                                             timer_hashmap.insert("displayed".to_string(), value.to_string());
                                         },
@@ -595,7 +598,7 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
                                         },
                                         "max_cycles" => {
                                             timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
-                                        }
+                                        },
                                         _ => {}
 
                                     }

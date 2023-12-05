@@ -19,10 +19,10 @@ use std::sync::Once;
 
 static INIT: Once = Once::new();
 
-pub static mut command: Commands = Commands::Start;
-pub static mut paused_duration:Duration = Duration::ZERO ;
-pub static mut d_paused_duration:Duration = Duration::ZERO ;
-pub static mut paused_start_time: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
+pub static mut COMMAND: Commands = Commands::Start;
+pub static mut PAUSED_DURATION:Duration = Duration::ZERO ;
+pub static mut SMALL_PAUSED_DURATION:Duration = Duration::ZERO ;
+pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 /// widget
 fn get_block<'a>(title: String) -> ButtonWidget<'a>{
     return ButtonWidget::default()
@@ -108,7 +108,7 @@ impl App {
 
             unsafe{
 
-                match command {
+                match COMMAND {
 
                     Commands::Stop=>{
                         state.states.insert("working".to_string(), "false".to_string());
@@ -135,7 +135,7 @@ impl App {
 
             unsafe{
 
-                match command {
+                match COMMAND {
 
                     Commands::Stop=>{
                         state.states.insert("working".to_string(), "false".to_string());
@@ -279,12 +279,12 @@ impl App {
             match action {
 
                 command_setter::Start => {
-                    command = Commands::Start;
-                    paused_duration += d_paused_duration;
+                    COMMAND = Commands::Start;
+                    PAUSED_DURATION += SMALL_PAUSED_DURATION;
                 }
                 command_setter::Stop=>{
-                    command = Commands::Stop;
-                    paused_start_time = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
+                    COMMAND = Commands::Stop;
+                    PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 
                     // paused_duration += SystemTime::now().duration_since(UNIX_EPOCH).unwrap()- paused_start.clone();
 
@@ -299,17 +299,17 @@ impl App {
 
                 command_setter::Revert=>{
 
-                    match command{
+                    match COMMAND{
 
                         // meaning that the timer will STOP
                         Commands::Start => {
-                            command = Commands::Stop;
-                            paused_start_time = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
+                            COMMAND = Commands::Stop;
+                            PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
                         }
                         // meaning that the timer will START
                         Commands::Stop=>{
-                            command = Commands::Start;
-                            paused_duration += d_paused_duration;
+                            COMMAND = Commands::Start;
+                            PAUSED_DURATION += SMALL_PAUSED_DURATION;
                         }
 
                     }

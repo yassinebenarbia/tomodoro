@@ -15,7 +15,11 @@
   # need fixing for the floating point
   y = 0.4 
   # duratoin of the cycle, should be an integer
-  duration = 1500
+  # the duration of the focus state
+  focus_duration = 10
+  # duratoin of the cycle, should be an integer
+  # the duration of the resting state
+  rest_duration = 5
   # number of cycles, should be a string of either a number 
   # or the "inf" string for infinite cycles
   max_cycles = "9"
