@@ -24,7 +24,7 @@
   # or the "inf" string for infinite cycles
   max_cycles = "9"
   # the number of the timer starts from, should be defaulted to 0
-  cycles = "0"
+  cycles = "3"
 
 [Button]
   # widget collor, should be a string

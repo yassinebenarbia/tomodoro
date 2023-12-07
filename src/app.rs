@@ -23,6 +23,8 @@ pub static mut COMMAND: Commands = Commands::Start;
 pub static mut PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut SMALL_PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
+pub static mut CYCLES: u64 = 0;
+
 /// widget
 fn get_block<'a>(title: String) -> ButtonWidget<'a>{
     return ButtonWidget::default()
@@ -50,7 +52,7 @@ impl<'a> Dumy<'a> {
         let mut toreturn = vec![];
 
         for (state, rect) in material.iter() {
-            let mut constructed = state.clone();
+            let constructed = state.clone();
             toreturn.push((
                  StatetWrapper{
                     wrapped: constructed,
@@ -285,8 +287,6 @@ impl App {
                 command_setter::Stop=>{
                     COMMAND = Commands::Stop;
                     PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
-
-                    // paused_duration += SystemTime::now().duration_since(UNIX_EPOCH).unwrap()- paused_start.clone();
 
                     // desired behavior
                     // on stop state {

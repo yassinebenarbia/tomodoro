@@ -18,6 +18,7 @@ use crate::directions::Commands;
 /// start: u64(seconds), the systime since the application started
 /// duration_duration: u32(seconds), the length of the "focus" cycle
 /// displayed: u32(seconds), this holds the displayed time buffer
+/// phase: String, can be either "focus" or "rest"
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct State{
     pub states: HashMap<String, String>
@@ -26,7 +27,7 @@ pub struct State{
 
 impl State{
 
-    pub fn get_states(&mut self) -> &HashMap<String, String>{
+    pub fn get_states(&self) -> &HashMap<String, String>{
         &self.states
     }
 

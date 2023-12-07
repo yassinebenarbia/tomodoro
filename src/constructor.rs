@@ -557,7 +557,6 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     let mut state = State::default();
     let mut timer_hashmap = HashMap::new();
 
-    // timer_hashmap.insert("default", value)
     timer_hashmap.insert("displayed".to_string(), 20.to_string());
     timer_hashmap.insert("focus_duration".to_string(), 1500.to_string());
     timer_hashmap.insert("rest_duration".to_string(), 300.to_string());
@@ -567,6 +566,7 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
     timer_hashmap.insert("start".to_string(), current);
     timer_hashmap.insert("working".to_string(), "true".to_string());
+    timer_hashmap.insert("phase".to_string(), "focus".to_string());
 
     // TODO add support of the working state for the config file
     match values{
