@@ -1,3 +1,16 @@
+/**
+* TODO: make the button respond to the click events
+* TODO: make the button display the state of the timer as "focus",
+* "rest", and "paused".
+* TODO: add an option to toggle the click behavior
+* TODO: add an option to toggle the state display behavior
+* TODO: clean up the code
+* TODO: upload the thing to a public repo
+* TODO: add the a sound when the focus duration ends
+* TODO: add the a sound when the rest duration ends
+* TODO: add option to toggle the focus duration sound
+* TODO: add option to toggle the rest duration sound
+* */
 use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions};
 use std::io;
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, Command };
@@ -13,7 +26,7 @@ use crate::{
     stateful_button::{Button, ButtonState}
     ,button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
     timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::{ self, Compounder, StatetWrapper, WidgetWrapper}, config::Config, directions::{Commands, self, command_setter}, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, state, trait_holder::TraitHolder
+    displayable::Displayable, screen::{ self, Compounder, StatetWrapper, WidgetWrapper}, config::Config, directions::{Commands, self, command_setter}, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, trait_holder::TraitHolder
 };
 use std::sync::Once;
 
@@ -24,6 +37,7 @@ pub static mut PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut SMALL_PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 pub static mut CYCLES: u64 = 0;
+pub static mut QUIT: bool = false;
 
 /// widget
 fn get_block<'a>(title: String) -> ButtonWidget<'a>{
@@ -158,39 +172,6 @@ impl App {
 
         }
 
-        // TODO should implement the start, stop functionality
-
-        // let mut selected = comp.states.get_mut(0).unwrap().0;
-
-        // desired behavior
-        // selected = comp.states.get_mut(0).unwrap().0 
-        //      this of type StatetWrapper
-        //
-        // selected.wrapped.insert("hovered", "false");
-        // let next = selected.up
-        // next.wrapped.insert("hovered", "true");
-        // selected = next;
-
-        // if let Some(value) = states.get_mut(0) {
-
-        //     f.render_stateful_widget(
-        //         timer,
-        //         timer_layout,
-        //         value,
-        //     );
-
-        // }
-
-        // if let Some(value) = states.get_mut(1) {
-
-        //     f.render_stateful_widget(
-        //         button,
-        //         button_layout,
-        //         value,
-        //     );
-
-        // }
-
     }
 
     pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>>{
@@ -204,19 +185,6 @@ impl App {
 
         // run the app
         let last_tick = Instant::now();
-
-        // desired behavior
-        // let app = App::new();
-        // let tiemr_state: TimerState = TimerState::default();
-        // app.set_state(timer_state);
-        // loop {
-        //     app.ui()
-        //     if q is clicked {
-        //         app.quit()
-        //     } else if smth else is clicked {
-        //        app.do_smth_else();
-        //     }
-        // }
 
         let conf = Config::read();
 
@@ -242,6 +210,12 @@ impl App {
         let mut comp = Compounder::encapsulate(load);
 
         loop {
+
+            unsafe{
+                if QUIT {
+                    return App::quit(terminal);
+                }
+            }
 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
@@ -288,15 +262,7 @@ impl App {
                     COMMAND = Commands::Stop;
                     PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 
-                    // desired behavior
-                    // on stop state {
-                    //      unsafe{
-                    //          paused_duration += now - paused_start 
-                    //      }
-                    // }
-                    // paused_duration.add()
                 }
-
                 command_setter::Revert=>{
 
                     match COMMAND{

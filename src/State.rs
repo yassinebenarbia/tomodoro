@@ -19,6 +19,8 @@ use crate::directions::Commands;
 /// duration_duration: u32(seconds), the length of the "focus" cycle
 /// displayed: u32(seconds), this holds the displayed time buffer
 /// phase: String, can be either "focus" or "rest"
+/// focus_alarm: String: represents the path for the focus alarm sound
+/// rest_alarm: String: represents the path for the rest alarm sound
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct State{
     pub states: HashMap<String, String>

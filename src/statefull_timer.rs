@@ -1,10 +1,14 @@
 use std::{
-    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}, fs::{File, OpenOptions}, fmt::Debug, ops::{Add, Sub}};
+    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}, fs::{File, OpenOptions}, fmt::Debug, ops::{Add, Sub}, thread::{self, Thread}, path::Path, sync::{Arc, Mutex}
+};
+use crossterm::event::{Event, KeyCode, KeyModifiers};
+use enigo::{Enigo, KeyboardControllable};
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
+// use simulate_input::{Key, KeyCode};
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{COMMAND, PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES}};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{COMMAND, PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, App, QUIT}, player::{self, Player}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -51,29 +55,8 @@ impl StatefulWidget for Timer {
         // 1) substract time_step from the displayed time 
         // 2) render the widget
 
-        // let duration = state.get_states().get("focus_duration").unwrap();
-        // let mut fi = OpenOptions::new().append(true).write(true).create(true).open("log_start").unwrap();
-        // fi.write(format!("{:?}\n", duration).as_bytes());
-
         if area.area() == 0 {
             return;
-        }
-
-        // let mut log = OpenOptions::new().append(true).create(true).open("logs").unwrap();
-        // log.write(format!("{}\n",state.states.get("hovered").unwrap()).as_bytes());
-        // println!("{:?}", state.states.get("hovered"));
-        // panic!();
-
-        match state.get_states().get("phase") {
-            Some(value) => {
-                if value == "focus" {
-
-                }else if value == "rest" {
-
-                }
-
-            },
-            None=>{}
         }
 
         buf.set_style(area, self.widget.style);
@@ -171,10 +154,6 @@ impl StatefulWidget for Timer {
 
         buf.set_spans(time_x, time_y, &time, time_area_width);
 
-        // TODO: This should manage the time state, check timer_state.manage_state()
-        // state.manage_state(|s|{});
-
-
         unsafe{
             // the duration from which the application started
             let start = PAUSED_START_TIME.clone();
@@ -186,16 +165,14 @@ impl StatefulWidget for Timer {
                 if s == "true" {
                     self.manage_state(state);
                     SMALL_PAUSED_DURATION = Duration::ZERO;
-                    
                 // meaning that the timer should NOT be working
                 }else{
                     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
                     SMALL_PAUSED_DURATION =  now - start;
                     // to know how long did we spend on posing
-
                 }
             }
-        }        
+        }   
 
     }
 
@@ -220,7 +197,6 @@ impl Displayable for Timer {
         0
     }
 
-    /// TODO: this should get done today
     fn manage_state(&self, state: &mut State::State) {
         unsafe{
 
@@ -233,11 +209,14 @@ impl Displayable for Timer {
                 .expect("unable to get the cycle number from the timer state")
                 .parse::<u64>().unwrap();
 
-            // if phase == String::from("focus") {
-            //     manage focus time
-            // }else if phase == String::from("rest"){
-            //      manage rest time
-            // }
+            let max_cycles = state.get_states().get("max_cycles")
+                .expect("unable to get max_cycles from timer state");
+
+            // if the max_cycles is declared, and the current cycle count is equal to the
+            // maximum amount of cycles, we should quit the program
+            if max_cycles != "inf" && max_cycles.parse::<u64>().unwrap() <= cycles {
+                QUIT = true;
+            }
 
             // the systime of which the application started
             let start = state.get_states().get("start").expect("no start time is not provided");
@@ -282,6 +261,7 @@ impl Displayable for Timer {
                     // focus phase
                     if phase == "focus" {
 
+
                         // how many seconds have passed in this phase
                         let ndiff = (diff - CYCLES*rest_duration) % focus_duration;
 
@@ -294,6 +274,25 @@ impl Displayable for Timer {
                         if ndiff == focus_duration - 1 {
 
                             state.states.insert(String::from("prev_diff"), diff.to_string());
+                            let focus_path = state.get_states().get("focus_alarm")
+                                .expect("unable to locate te focus_alarm path")
+                                .clone();
+
+                            if focus_path != "" {
+
+                                thread::spawn(move ||{
+
+                                    if focus_path != "" {
+                                        let mut full_focus_path = std::env::var("TOMODORO_PATH").unwrap();
+                                        full_focus_path.push_str("/");
+                                        full_focus_path.push_str(focus_path.as_str());
+                                        let player = Player::new(&full_focus_path);
+                                        player.play_until(Duration::from_secs(2));
+                                    }
+
+                                });
+
+                            }
 
                             // another check, to know wether or not the 
                             // previous call is different or not from the current
@@ -304,7 +303,6 @@ impl Displayable for Timer {
                         }
                         
                     }else if phase == "rest" {
-                        
 
                         let ndiff = (diff - CYCLES*focus_duration) % rest_duration;
 
@@ -321,6 +319,26 @@ impl Displayable for Timer {
                             // another check, to know wether or not the 
                             // previous call is different or not from the current
                             state.states.insert("phase".to_string(), "focus".to_string());
+
+                            let rest_path =
+                                state.get_states().get("rest_alarm")
+                                    .expect("unable to locate te rest_alarm path").clone();
+
+                            if rest_path != "" {
+
+                                thread::spawn(move ||{
+
+                                    if rest_path != "" {
+                                        let mut full_rest_path = std::env::var("TOMODORO_PATH").unwrap();
+                                        full_rest_path.push_str("/");
+                                        full_rest_path.push_str(rest_path.as_str());
+                                        let player = Player::new(&full_rest_path);
+                                        player.play_until(Duration::from_secs(2));
+                                    }
+
+                                });
+
+                            }
 
                         }
                         
@@ -389,15 +407,11 @@ impl Timer {
     /// CURRENTLY UNIMPLEMENTED
     // only here we can increment the cycle, as the cycle
     // represent the only the number of the passed working times
-    pub fn manage_focuss(&self, state: &mut State::State) {
-
-    }
+    pub fn manage_focuss(&self, state: &mut State::State) {}
 
     /// manages the time under the timer widget under the rest state
     /// CURRENTLY UNIMPLEMENTED
-    pub fn manage_rest(&self, state: &mut State::State) {
-
-    }
+    pub fn manage_rest(&self, state: &mut State::State) {}
 
 }
 

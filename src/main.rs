@@ -1,11 +1,6 @@
 use std::io;
-use std::sync::Mutex;
-use displayable::Displayable;
-use once_cell::sync::Lazy;
 
 use app::App;
-use statefull_timer::Timer;
-
 
 mod trait_holder;
 mod State;
@@ -25,7 +20,7 @@ mod stateful_button;
 mod button;
 mod app;
 mod capabilities;
-mod state;
+mod player;
 
 
 fn main() -> Result<(), io::Error> {

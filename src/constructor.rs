@@ -561,12 +561,15 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     timer_hashmap.insert("focus_duration".to_string(), 1500.to_string());
     timer_hashmap.insert("rest_duration".to_string(), 300.to_string());
     timer_hashmap.insert("cycles".to_string(), 1.to_string());
-    timer_hashmap.insert("max_cycles".to_string(), 4.to_string());
+    timer_hashmap.insert("max_cycles".to_string(), "inf".to_string());
     timer_hashmap.insert("prev_diff".to_string(), 0.to_string());
     let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
     timer_hashmap.insert("start".to_string(), current);
     timer_hashmap.insert("working".to_string(), "true".to_string());
     timer_hashmap.insert("phase".to_string(), "focus".to_string());
+    timer_hashmap.insert("focus_alarm".to_string(), "".to_string());
+    timer_hashmap.insert("rest_alarm".to_string(), "".to_string());
+    
 
     // TODO add support of the working state for the config file
     match values{
@@ -594,10 +597,16 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
                                             timer_hashmap.insert("displayed".to_string(), value.to_string());
                                         },
                                         "cycles" => {
-                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
                                         },
                                         "max_cycles" => {
-                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "focus_alarm" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().to_owned().unwrap().to_string());
+                                        },
+                                        "rest_alarm" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().to_owned().unwrap().to_string());
                                         },
                                         _ => {}
 

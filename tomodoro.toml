@@ -16,15 +16,18 @@
   y = 0.4 
   # duratoin of the cycle, should be an integer
   # the duration of the focus state
-  focus_duration = 10
+  focus_duration = 5
   # duratoin of the cycle, should be an integer
   # the duration of the resting state
   rest_duration = 5
-  # number of cycles, should be a string of either a number 
-  # or the "inf" string for infinite cycles
-  max_cycles = "9"
-  # the number of the timer starts from, should be defaulted to 0
-  cycles = "3"
+  # number of cycles, defaults to infinite and if not declared implicitly
+  max_cycles = 2
+  # the number of the timer starts from
+  cycles = 0
+
+  focus_alarm = "assets/hotel-bell-ding-1-174457.mp3"
+
+  rest_alarm = "assets/old-style-door-bell-101191.mp3"
 
 [Button]
   # widget collor, should be a string
