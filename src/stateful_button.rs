@@ -6,6 +6,7 @@ use tui::Terminal;
 use tui::backend::CrosstermBackend;
 use tui::buffer::{Cell, Buffer};
 use tui::style::Color;
+use tui::text::{Spans, Span};
 use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
@@ -170,7 +171,42 @@ impl<'B> StatefulWidget for Button<'B> {
                 .set_style(self.widget.border_style);
         }
 
-        let clicked = state.states.get("clicked").unwrap();
+        let clicked = state.states.get("clicked")
+            .expect("unable to locate clicked in the button_state state");
+
+        let s_displayed = state.states.get("focus_banner")
+            .expect("unable to locate the focus_banner in the button_state");
+
+        let focus_banner = Spans::from(vec![
+            Span::styled(s_displayed, Style::default().fg(Color::Yellow))
+        ]);
+
+        // time
+        let left_border_dx = if self.widget.borders.intersects(Borders::LEFT) {
+            1
+        } else {
+            0
+        };
+
+        let right_border_dx = if self.widget.borders.intersects(Borders::RIGHT) {
+            1
+        } else {
+            0
+        };
+
+        let focus_banner_width = area
+            .width
+            .saturating_sub(left_border_dx)
+            .saturating_sub(right_border_dx);
+
+        let focus_banner_dx = area.width.saturating_sub(focus_banner.width() as u16) / 2;
+        let focus_banner_dy = area.height / 2;
+
+        let time_x = area.left() + focus_banner_dx;
+        let time_y = area.top() +  focus_banner_dy;
+
+        buf.set_spans(time_x, time_y, &focus_banner, focus_banner_width);
+
 
         if clicked.trim().parse::<bool>().unwrap() {
 
@@ -307,27 +343,3 @@ impl<'B> Displayable for  Button<'B>{
 }
 
 impl<'B> TraitHolder for Button<'B>{}
-
-#[derive(Debug, Default)]
-pub struct ButtonState{
-    hovered: bool,
-    clicked: bool,
-}
-
-impl ButtonState {
-    pub fn new(hovered: bool, clicked: bool) -> ButtonState {
-        ButtonState{hovered, clicked}
-    }
-    pub fn clicked(& self) -> bool{
-        self.clicked
-    }
-    pub fn hovered(& self) -> bool{
-        self.hovered 
-    }
-    pub fn set_hover_state(&mut self, state: bool){
-        self.hovered = state;
-    }
-    pub fn set_clicked_state(&mut self, state: bool){
-        self.clicked = state;
-    }
-}

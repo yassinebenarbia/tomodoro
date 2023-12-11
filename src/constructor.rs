@@ -8,7 +8,7 @@ use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
-use crate::stateful_button::{ButtonState, Button};
+use crate::stateful_button::Button;
 use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
 
 pub struct Constructor;
@@ -646,6 +646,70 @@ pub fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBacke
 
     button_hasmap.insert("clicked".to_string(), "false".to_string());
     button_hasmap.insert("hovered".to_string(), "false".to_string());
+
+    button_hasmap.insert("focus_banner".to_string(), "focus".to_string());
+    button_hasmap.insert("rest_banner".to_string(), "rest".to_string());
+    button_hasmap.insert("pause_banner".to_string(), "pause".to_string());
+    button_hasmap.insert("clickable".to_string(), "false".to_string());
+
+    match values{
+
+        toml::Value::Table(table) => {
+
+            for (key, value) in table {
+
+                match key.as_str() {
+
+                    "Button" => {
+
+                        match value {
+
+                            toml::Value::Table(v)=>{
+
+                                for (key, value ) in v {
+
+                                    match key.as_str() {
+                                        "title" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "rest_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "focus_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "pause_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "clickable" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        }
+                                        _ => {}
+
+                                    }
+
+                                }
+
+                            }
+                            _ =>{}
+
+                        }
+
+                    },
+
+                    _ => {}
+
+
+                }
+
+            }
+
+        },
+
+        _ => {}
+
+    };
+
 
     state.states = button_hasmap;
 

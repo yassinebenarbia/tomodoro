@@ -14,19 +14,19 @@
   # can be an integer or a float between 0 and 1
   # need fixing for the floating point
   y = 0.4 
-  # duratoin of the cycle, should be an integer
+  # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
-  focus_duration = 5
-  # duratoin of the cycle, should be an integer
+  focus_duration = 1500
+  # duratoin of the cycle in seconds, should be an integer
   # the duration of the resting state
-  rest_duration = 5
+  rest_duration = 300
   # number of cycles, defaults to infinite and if not declared implicitly
   max_cycles = 2
   # the number of the timer starts from
   cycles = 0
-
+  # path of the audio that will run when the focus phase starts
   focus_alarm = "assets/hotel-bell-ding-1-174457.mp3"
-
+  # path of the audio that will run when the rest phase starts
   rest_alarm = "assets/old-style-door-bell-101191.mp3"
 
 [Button]
@@ -46,3 +46,9 @@
   y = 0.60
   # the text displayed inside the button
   title = "my_button"
+  # TODO
+  focus_banner = "focus"
+  rest_banner = "rest"
+  pause_banner = "pausing"
+
+  clickable = false

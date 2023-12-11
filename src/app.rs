@@ -1,7 +1,7 @@
 /**
 * TODO: make the button respond to the click events
-* TODO: make the button display the state of the timer as "focus",
-* "rest", and "paused".
+* TODO: make the button display a custom banner for each state
+* TODO: make an option to custimize each banner for each state
 * TODO: add an option to toggle the click behavior
 * TODO: add an option to toggle the state display behavior
 * TODO: clean up the code
@@ -10,7 +10,9 @@
 * TODO: add the a sound when the rest duration ends
 * TODO: add option to toggle the focus duration sound
 * TODO: add option to toggle the rest duration sound
-* */
+* TODO: add a cycles counter that displayes the number of cycles
+* TODO: add an option to toggle the visibility of each object
+**/
 use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions};
 use std::io;
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, Command };
@@ -23,8 +25,8 @@ use tui::{
 };
 
 use crate::{
-    stateful_button::{Button, ButtonState}
-    ,button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
+    stateful_button::Button,
+    button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
     timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
     displayable::Displayable, screen::{ self, Compounder, StatetWrapper, WidgetWrapper}, config::Config, directions::{Commands, self, command_setter}, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, trait_holder::TraitHolder
 };

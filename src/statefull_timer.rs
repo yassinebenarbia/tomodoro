@@ -216,6 +216,27 @@ impl Displayable for Timer {
             // maximum amount of cycles, we should quit the program
             if max_cycles != "inf" && max_cycles.parse::<u64>().unwrap() <= cycles {
                 QUIT = true;
+
+                let focus_path = state.get_states().get("focus_alarm")
+                    .expect("unable to locate te focus_alarm path")
+                    .clone();
+                if focus_path != "" {
+
+                    thread::spawn(move ||{
+
+                        if focus_path != "" {
+
+                            let mut full_focus_path = std::env::var("TOMODORO_PATH").unwrap();
+                            full_focus_path.push_str("/");
+                            full_focus_path.push_str(focus_path.as_str());
+                            let player = Player::new(&full_focus_path);
+                            player.play_until(Duration::from_secs(2));
+
+                        }
+
+                    }).join();
+
+                }
             }
 
             // the systime of which the application started
