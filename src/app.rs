@@ -13,7 +13,7 @@
 * TODO: add a cycles counter that displayes the number of cycles
 * TODO: add an option to toggle the visibility of each object
 **/
-use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions};
+use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions, thread};
 use std::io;
 use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, Command };
 use once_cell::sync::Lazy;
@@ -213,11 +213,11 @@ impl App {
 
         loop {
 
-            unsafe{
-                if QUIT {
-                    return App::quit(terminal);
-                }
-            }
+            // unsafe{
+            //     if QUIT {
+            //         return App::quit(terminal);
+            //     }
+            // }
 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
@@ -247,6 +247,8 @@ impl App {
             })?;
 
         }
+
+        thread::sleep(Duration::from_millis(200));
 
     }
 

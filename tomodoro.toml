@@ -21,7 +21,7 @@
   # the duration of the resting state
   rest_duration = 300
   # number of cycles, defaults to infinite and if not declared implicitly
-  max_cycles = 2
+  max_cycles = 1
   # the number of the timer starts from
   cycles = 0
   # path of the audio that will run when the focus phase starts
@@ -47,7 +47,8 @@
   # the text displayed inside the button
   title = "my_button"
   # TODO
-  focus_banner = "focus"
+  focus_banner = "focusing"
+
   rest_banner = "rest"
   pause_banner = "pausing"
 
