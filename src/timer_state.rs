@@ -117,7 +117,7 @@ impl TimerState {
     pub fn manage_state(&mut self){
 
         // difference between the current time and the started time as a second
-        let mut raw_diff = SystemTime::now()
+        let raw_diff = SystemTime::now()
             .duration_since(self.start)
             .expect("unable to manage time")
             .as_secs();

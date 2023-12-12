@@ -35,7 +35,7 @@ impl<'B> Default for Cadre<'B> {
     fn default() -> Self {
 
         let backend = CrosstermBackend::new(io::stdout());
-        let mut terminal = Terminal::new(backend).unwrap();
+        let terminal = Terminal::new(backend).unwrap();
 
         Cadre{
             frame: terminal.size().unwrap(), 
@@ -68,7 +68,7 @@ impl<'B> Cadre<'B>{
         width: u16, height: u16,
     ) -> Cadre<'B>{
 
-        let mut layout = Rect::new(x, y, width, height);
+        let layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){
             Ok(_)=>{
                 self.layout = layout;

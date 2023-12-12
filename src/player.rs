@@ -47,9 +47,9 @@ impl<'a> Player<'a> {
 }
 
 mod Test{
-    use std::time::Duration;
+    
 
-    use super::Player;
+    
 
     #[test]
     fn play_test() {

@@ -1,4 +1,4 @@
-use std::{time::Duration, ops::{Mul, Div}};
+use std::{time::Duration};
 
 use tui::layout::Rect;
 
@@ -82,7 +82,7 @@ pub fn is_float(string: &str) -> bool{
 
 pub fn highlight_color(r: u8, g: u8, b: u8) -> (u8, u8, u8) {
 
-    let mut ratio:f32 = r.max(g).max(b) as f32 / 255 as f32;
+    let ratio:f32 = r.max(g).max(b) as f32 / 255 as f32;
 
     println!("factor: {}", ratio);
 
@@ -94,11 +94,11 @@ pub fn highlight_color(r: u8, g: u8, b: u8) -> (u8, u8, u8) {
 }
 
 mod Test{
-    use std::{time::Duration, thread::sleep};
+    
 
-    use super::{time_conversion, hex_to_rgb, highlight_color};
+    
 
-    use std::time::SystemTime;
+    
 
     #[test]
     fn time_conversion_succeed() {

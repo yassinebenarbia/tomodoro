@@ -1,21 +1,21 @@
 use std::fmt::Debug;
-use std::fs::OpenOptions;
-use std::io::{self, Write};
-use std::path::Display;
+
+use std::io::{self};
+
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
-use tui::buffer::{Cell, Buffer};
+use tui::buffer::{Buffer};
 use tui::style::Color;
 use tui::text::{Spans, Span};
 use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
-    style::{Modifier, Style}, layout::Rect, widgets::{Block, Borders, Table},
+    style::{Style}, layout::Rect, widgets::{Borders},
 };
 use crate::State::State;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
 use crate::displayable::Displayable;
-use crate::trait_holder::{self, TraitHolder};
+use crate::trait_holder::{TraitHolder};
 
 //TODO: add layout and style
 //TODO: make a text struct that will held the text inside the button, if necessery
@@ -80,7 +80,7 @@ impl<'B> Default for Button<'B> {
     fn default() -> Self {
 
         let backend = CrosstermBackend::new(io::stdout());
-        let mut terminal = Terminal::new(backend).unwrap();
+        let terminal = Terminal::new(backend).unwrap();
 
         Button{
             frame: terminal.size().unwrap(), 
@@ -103,8 +103,8 @@ impl<'B> StatefulWidget for Button<'B> {
         // let mut log = OpenOptions::new().append(true).create(true).open("logs").unwrap();
         // log.write(format!("{}\n",state.states.get("hovered").unwrap()).as_bytes());
 
-        let x_mid:u16 = ((area.x + area.width) as i16 / 2 as i16) as u16;
-        let y_mid:u16 = ((area.y + area.height) as i16 / 2 as i16) as u16;
+        let _x_mid:u16 = ((area.x + area.width) as i16 / 2 as i16) as u16;
+        let _y_mid:u16 = ((area.y + area.height) as i16 / 2 as i16) as u16;
 
         // println!("red thing: {:?}", Color::Red);
         // panic!();
@@ -248,7 +248,7 @@ impl<'B> Button<'B>{
         width: u16, height: u16,
     ) -> &mut Self{
 
-        let mut layout = Rect::new(x, y, width, height);
+        let layout = Rect::new(x, y, width, height);
 
         match compare_rect(&self.frame, &layout){
             Ok(_)=>{
@@ -314,7 +314,7 @@ impl<'B> Button<'B>{
 
 impl<'B> Displayable for  Button<'B>{
 
-    fn manage_state(&self, state: &mut crate::State::State) {
+    fn manage_state(&self, _state: &mut crate::State::State) {
         todo!()
     }
 

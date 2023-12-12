@@ -13,22 +13,20 @@
 * TODO: add a cycles counter that displayes the number of cycles
 * TODO: add an option to toggle the visibility of each object
 **/
-use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions, thread};
+use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment}, io::{Stdout, Write}, thread};
 use std::io;
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, Command };
+use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self} };
 use once_cell::sync::Lazy;
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders, StatefulWidget},
-    layout::{Rect, Direction},
-    Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
+    widgets::{Borders},
+    layout::{Rect},
+    Frame, style::{Style, Color, Modifier}, Terminal,
 };
 
 use crate::{
-    stateful_button::Button,
-    button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
-    timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::{ self, Compounder, StatetWrapper, WidgetWrapper}, config::Config, directions::{Commands, self, command_setter}, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, trait_holder::TraitHolder
+    button_widget::ButtonWidget, timer_state::TimerState,
+    displayable::Displayable, screen::{ Compounder, StatetWrapper}, config::Config, directions::{Commands, command_setter}, constructor::{ self, construct_timer_state, construct_button_state}, State
 };
 use std::sync::Once;
 
@@ -176,7 +174,7 @@ impl App {
 
     }
 
-    pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>>{
+    pub fn run<'a>(self) -> Result<(), Box<dyn Error>>{
 
         // setup terminal
         enable_raw_mode()?;

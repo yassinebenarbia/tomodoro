@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{fs::OpenOptions, io::Stdout};
+use std::{io::Stdout};
 
-use toml::{Value, value::Time};
+use toml::{Value};
 use tui::layout::Rect;
 use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
 use crate::stateful_button::Button;
-use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
+use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb}, widget_fixer::Fixer};
 
 pub struct Constructor;
 
@@ -53,7 +53,7 @@ impl Dumy {
 impl StatefulWidget for Dumy {
 
     type State = State;
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
+    fn render(self, _area: tui::layout::Rect, _buf: &mut tui::buffer::Buffer, _state: &mut Self::State) {
         
     }
     
@@ -62,7 +62,7 @@ impl StatefulWidget for Dumy {
 impl StatefulWidget for Thingy {
 
     type State = State;
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
+    fn render(self, _area: tui::layout::Rect, _buf: &mut tui::buffer::Buffer, _state: &mut Self::State) {
         
     }
     
@@ -76,8 +76,8 @@ impl StatefulWidget for Thingy {
 pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)->
 Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
-    let timer_string = String::from("Timer");
-    let button_string = String::from("Button");
+    let _timer_string = String::from("Timer");
+    let _button_string = String::from("Button");
 
     let mut timer = Timer::default();
     let mut timer_state = State::default();
@@ -92,12 +92,12 @@ Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
                 match key.as_str() {
 
-                    timer_string => {
+                    _timer_string => {
                         timer = construct_timer(val, term);
                         timer_state = construct_timer_state(val, term);
                         // toreturn.push(timer_state_consturct(val), timer_construct(val))
                     },
-                    button_string => {
+                    _button_string => {
                         button = construct_button(val, term);
                         button_state = construct_button_state(val, term);
                         // toreturn.push(button_state_consturct(val), button_construct(val))
@@ -552,7 +552,7 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
 /// construcuts `State` from the `values` paramater, or in another word
 /// from the config file
 /// This state is specifically desined for the `Timer` widget
-pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+pub fn construct_timer_state(values:& Value, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
 
     let mut state = State::default();
     let mut timer_hashmap = HashMap::new();
@@ -639,7 +639,7 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
 
 }
 
-pub fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+pub fn construct_button_state(values:& Value, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
 
     let mut state = State::default();
     let mut button_hasmap = HashMap::new();

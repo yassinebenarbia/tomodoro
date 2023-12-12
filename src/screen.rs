@@ -1,5 +1,5 @@
-use std::{fmt::Debug, cmp::Ordering, rc::Rc, ops::Deref, io::Stdout};
-use tui::{widgets::{Widget, StatefulWidget, Sparkline}, layout::Rect, Terminal, backend::CrosstermBackend};
+use std::{fmt::Debug, io::Stdout};
+use tui::{widgets::{StatefulWidget}, layout::Rect, Terminal, backend::CrosstermBackend};
 
 use crate::{displayable::Displayable, State, config::Config, widget_fixer::Fixer};
 
@@ -338,7 +338,7 @@ impl<'a> Compounder<'a> {
 
         for (state, rect) in inner.iter()  {
             
-            let mut temp_state = state.clone();
+            let temp_state = state.clone();
 
             toreturn.push((
                 StatetWrapper{
@@ -505,13 +505,13 @@ impl<'a> Compounder<'a> {
 
 mod Test{
 
-    use std::io::stdout;
+    
 
-    use tui::{Terminal, backend::CrosstermBackend};
+    
 
-    use crate::{app::Dumy, config::Config};
+    
 
-    use super::Compounder;
+    
 
     // use super::{Screen, Compounder};
 

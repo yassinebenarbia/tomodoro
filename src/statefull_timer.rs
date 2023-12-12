@@ -1,14 +1,14 @@
 use std::{
-    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self, Write}, fs::{File, OpenOptions}, fmt::Debug, ops::{Add, Sub}, thread::{self, Thread}, path::Path, sync::{Arc, Mutex}
+    time::{Duration,SystemTime, UNIX_EPOCH}, io::{self}, fmt::Debug, thread::{self}
 };
-use crossterm::event::{Event, KeyCode, KeyModifiers};
-use enigo::{Enigo, KeyboardControllable};
+
+
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders}, text::{Spans, Span}, style::{Color, Style}
 };
 // use simulate_input::{Key, KeyCode};
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{COMMAND, PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, App, QUIT}, player::{self, Player}};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT}, player::{Player}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -245,7 +245,7 @@ impl Displayable for Timer {
             // duration from which the application started
             let start_duration = UNIX_EPOCH + Duration::from_secs(start.parse::<u64>().unwrap());
 
-            let mut diff = SystemTime::now()
+            let diff = SystemTime::now()
                 // the displayed duration is the worked time plus the paused time
                 .duration_since(start_duration + SMALL_PAUSED_DURATION + PAUSED_DURATION)
                 .expect("unable to manage time")
@@ -428,11 +428,11 @@ impl Timer {
     /// CURRENTLY UNIMPLEMENTED
     // only here we can increment the cycle, as the cycle
     // represent the only the number of the passed working times
-    pub fn manage_focuss(&self, state: &mut State::State) {}
+    pub fn manage_focuss(&self, _state: &mut State::State) {}
 
     /// manages the time under the timer widget under the rest state
     /// CURRENTLY UNIMPLEMENTED
-    pub fn manage_rest(&self, state: &mut State::State) {}
+    pub fn manage_rest(&self, _state: &mut State::State) {}
 
 }
 

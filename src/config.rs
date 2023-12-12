@@ -68,9 +68,9 @@ impl Config {
 
     /// sorts the given `config.conf` struct field with respect to the
     /// `key` parameter
-    pub fn sort_with(&self, key: String, value_type: String) -> Vec<(String, Value)>{
+    pub fn sort_with(&self, key: String, _value_type: String) -> Vec<(String, Value)>{
 
-        if let toml::Value::Table(mut table) = self.conf.clone(){
+        if let toml::Value::Table(table) = self.conf.clone(){
 
             let mut sorted_table: BTreeMap<String, toml::Value> = BTreeMap::new();
 
@@ -98,11 +98,11 @@ impl Config {
 
 mod Test{
 
-    use std::{fs, collections::HashMap, cmp::Ordering};
-    use json::JsonValue;
-    use toml::{self, Table};
+    
+    
+    use toml::{self};
 
-    use super::Config;
+    
 
     #[test]
     fn should_work() {
