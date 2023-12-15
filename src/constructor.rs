@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use std::{fs::OpenOptions, io::Stdout};
+use std::{io::Stdout};
 
-use toml::{Value, value::Time};
+use toml::{Value};
 use tui::layout::Rect;
 use tui::widgets::{Borders, BorderType};
 use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
-use crate::stateful_button::{ButtonState, Button};
-use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb, is_float, is_number}, widget_fixer::Fixer};
+use crate::stateful_button::Button;
+use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb}, widget_fixer::Fixer};
 
 pub struct Constructor;
 
@@ -53,7 +53,7 @@ impl Dumy {
 impl StatefulWidget for Dumy {
 
     type State = State;
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
+    fn render(self, _area: tui::layout::Rect, _buf: &mut tui::buffer::Buffer, _state: &mut Self::State) {
         
     }
     
@@ -62,7 +62,7 @@ impl StatefulWidget for Dumy {
 impl StatefulWidget for Thingy {
 
     type State = State;
-    fn render(self, area: tui::layout::Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
+    fn render(self, _area: tui::layout::Rect, _buf: &mut tui::buffer::Buffer, _state: &mut Self::State) {
         
     }
     
@@ -76,8 +76,8 @@ impl StatefulWidget for Thingy {
 pub fn truck(conf: &Config, term: &mut Terminal<CrosstermBackend<Stdout>>)->
 Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
-    let timer_string = String::from("Timer");
-    let button_string = String::from("Button");
+    let _timer_string = String::from("Timer");
+    let _button_string = String::from("Button");
 
     let mut timer = Timer::default();
     let mut timer_state = State::default();
@@ -92,12 +92,12 @@ Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
                 match key.as_str() {
 
-                    timer_string => {
+                    _timer_string => {
                         timer = construct_timer(val, term);
                         timer_state = construct_timer_state(val, term);
                         // toreturn.push(timer_state_consturct(val), timer_construct(val))
                     },
-                    button_string => {
+                    _button_string => {
                         button = construct_button(val, term);
                         button_state = construct_button_state(val, term);
                         // toreturn.push(button_state_consturct(val), button_construct(val))
@@ -139,10 +139,6 @@ Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
     ];
 
 }
-
-//TODO construct the function timer_state_constructor
-//TODO construct the function button_constructor
-//TODO construct the function button_state_constructor
 
 /// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
 /// returns a `Timer`
@@ -364,8 +360,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
     let mut x: u16 = fixer.xratio(40);
     let mut y: u16 = fixer.xratio(20);
 
-    let mut title = String::new();
-
     match values {
 
         // if the there is a table 
@@ -406,10 +400,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
 
                                             style = style.bg(tui::style::Color::Rgb(r, g, b));
                                         },
-
-                                        "title" => {
-                                            title = value.to_string();
-                                        }
 
                                         "width" => {
                                             match  value.as_float() {
@@ -530,7 +520,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
             // toreturn.widget.title = Some(title.into());
 
             button_widget.style = style;
-            button_widget.title = Some(title.into());
 
             toreturn
                 .layout(x, y, width, height)
@@ -552,7 +541,7 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
 /// construcuts `State` from the `values` paramater, or in another word
 /// from the config file
 /// This state is specifically desined for the `Timer` widget
-pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+pub fn construct_timer_state(values:& Value, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
 
     let mut state = State::default();
     let mut timer_hashmap = HashMap::new();
@@ -561,12 +550,15 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
     timer_hashmap.insert("focus_duration".to_string(), 1500.to_string());
     timer_hashmap.insert("rest_duration".to_string(), 300.to_string());
     timer_hashmap.insert("cycles".to_string(), 1.to_string());
-    timer_hashmap.insert("max_cycles".to_string(), 4.to_string());
+    timer_hashmap.insert("max_cycles".to_string(), "inf".to_string());
     timer_hashmap.insert("prev_diff".to_string(), 0.to_string());
     let current = SystemTime::now().duration_since(UNIX_EPOCH).expect("Could not get the current time").as_secs().to_string();
     timer_hashmap.insert("start".to_string(), current);
     timer_hashmap.insert("working".to_string(), "true".to_string());
     timer_hashmap.insert("phase".to_string(), "focus".to_string());
+    timer_hashmap.insert("focus_alarm".to_string(), "".to_string());
+    timer_hashmap.insert("rest_alarm".to_string(), "".to_string());
+    
 
     // TODO add support of the working state for the config file
     match values{
@@ -594,10 +586,16 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
                                             timer_hashmap.insert("displayed".to_string(), value.to_string());
                                         },
                                         "cycles" => {
-                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
                                         },
                                         "max_cycles" => {
-                                            timer_hashmap.insert(key.to_string(), value.as_str().unwrap().to_string());
+                                            timer_hashmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "focus_alarm" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().to_owned().unwrap().to_string());
+                                        },
+                                        "rest_alarm" => {
+                                            timer_hashmap.insert(key.to_string(), value.as_str().to_owned().unwrap().to_string());
                                         },
                                         _ => {}
 
@@ -630,13 +628,74 @@ pub fn construct_timer_state(values:& Value, term: &mut Terminal<CrosstermBacken
 
 }
 
-pub fn construct_button_state(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+pub fn construct_button_state(values:& Value, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
 
     let mut state = State::default();
     let mut button_hasmap = HashMap::new();
 
     button_hasmap.insert("clicked".to_string(), "false".to_string());
     button_hasmap.insert("hovered".to_string(), "false".to_string());
+
+    button_hasmap.insert("focus_banner".to_string(), "focus".to_string());
+    button_hasmap.insert("rest_banner".to_string(), "rest".to_string());
+    button_hasmap.insert("pause_banner".to_string(), "pause".to_string());
+    button_hasmap.insert("clickable".to_string(), "false".to_string());
+
+    match values{
+
+        toml::Value::Table(table) => {
+
+            for (key, value) in table {
+
+                match key.as_str() {
+
+                    "Button" => {
+
+                        match value {
+
+                            toml::Value::Table(v)=>{
+
+                                for (key, value ) in v {
+
+                                    match key.as_str() {
+                                        "rest_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "focus_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "pause_banner" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        },
+                                        "clickable" => {
+                                            button_hasmap.insert(key.to_string(), value.to_string());
+                                        }
+                                        _ => {}
+
+                                    }
+
+                                }
+
+                            }
+                            _ =>{}
+
+                        }
+
+                    },
+
+                    _ => {}
+
+
+                }
+
+            }
+
+        },
+
+        _ => {}
+
+    };
+
 
     state.states = button_hasmap;
 

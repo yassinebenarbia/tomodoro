@@ -1,19 +1,32 @@
-use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment, Debug}, io::{Stdout, Write}, ops::{Deref, Add}, fs::OpenOptions};
+/**
+* TODO: make the button respond to the click events
+* TODO: make the button display a custom banner for each state
+* TODO: make an option to custimize each banner for each state
+* TODO: add an option to toggle the click behavior
+* TODO: add an option to toggle the state display behavior
+* TODO: clean up the code
+* TODO: upload the thing to a public repo
+* TODO: add the a sound when the focus duration ends
+* TODO: add the a sound when the rest duration ends
+* TODO: add option to toggle the focus duration sound
+* TODO: add option to toggle the rest duration sound
+* TODO: add a cycles counter that displayes the number of cycles
+* TODO: add an option to toggle the visibility of each object
+**/
+use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment}, io::{Stdout, Write}, thread};
 use std::io;
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self}, Command };
+use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, EnableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self} };
 use once_cell::sync::Lazy;
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders, StatefulWidget},
-    layout::{Rect, Direction},
-    Frame, style::{Style, Color, Modifier}, buffer::Buffer, Terminal,
+    widgets::{Borders},
+    layout::{Rect},
+    Frame, style::{Style, Color, Modifier}, Terminal,
 };
 
 use crate::{
-    stateful_button::{Button, ButtonState}
-    ,button::Cadre, button_widget::ButtonWidget, statefull_timer::Timer,
-    timer_widget::TimerWidget, timer_state::TimerState, widget_fixer::Fixer,
-    displayable::Displayable, screen::{ self, Compounder, StatetWrapper, WidgetWrapper}, config::Config, directions::{Commands, self, command_setter}, constructor::{ truck, self, construct_timer_state, construct_button_state}, State, state, trait_holder::TraitHolder
+    button_widget::ButtonWidget, timer_state::TimerState,
+    displayable::Displayable, screen::{ Compounder, StatetWrapper}, config::Config, directions::{Commands, command_setter}, constructor::{ self, construct_timer_state, construct_button_state}, State
 };
 use std::sync::Once;
 
@@ -24,20 +37,9 @@ pub static mut PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut SMALL_PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 pub static mut CYCLES: u64 = 0;
+pub static mut QUIT: bool = false;
+pub static mut PHASE: &str = "focus";
 
-/// widget
-fn get_block<'a>(title: String) -> ButtonWidget<'a>{
-    return ButtonWidget::default()
-        .style(
-            Style::default()
-            .fg(Color::Red).bg(Color::Cyan)
-            .add_modifier(Modifier::BOLD | Modifier::ITALIC)
-        )
-        .title(title.clone()).title_alignment(Alignment::Center)
-        .borders(Borders::ALL);
-}
-
-// #[derive(Debug, Clone)]
 pub struct Dumy<'a>{
     field: Vec<(StatetWrapper<'a>, Rect)>
 }
@@ -158,42 +160,9 @@ impl App {
 
         }
 
-        // TODO should implement the start, stop functionality
-
-        // let mut selected = comp.states.get_mut(0).unwrap().0;
-
-        // desired behavior
-        // selected = comp.states.get_mut(0).unwrap().0 
-        //      this of type StatetWrapper
-        //
-        // selected.wrapped.insert("hovered", "false");
-        // let next = selected.up
-        // next.wrapped.insert("hovered", "true");
-        // selected = next;
-
-        // if let Some(value) = states.get_mut(0) {
-
-        //     f.render_stateful_widget(
-        //         timer,
-        //         timer_layout,
-        //         value,
-        //     );
-
-        // }
-
-        // if let Some(value) = states.get_mut(1) {
-
-        //     f.render_stateful_widget(
-        //         button,
-        //         button_layout,
-        //         value,
-        //     );
-
-        // }
-
     }
 
-    pub fn run<'a>(mut self) -> Result<(), Box<dyn Error>>{
+    pub fn run<'a>(self) -> Result<(), Box<dyn Error>>{
 
         // setup terminal
         enable_raw_mode()?;
@@ -204,19 +173,6 @@ impl App {
 
         // run the app
         let last_tick = Instant::now();
-
-        // desired behavior
-        // let app = App::new();
-        // let tiemr_state: TimerState = TimerState::default();
-        // app.set_state(timer_state);
-        // loop {
-        //     app.ui()
-        //     if q is clicked {
-        //         app.quit()
-        //     } else if smth else is clicked {
-        //        app.do_smth_else();
-        //     }
-        // }
 
         let conf = Config::read();
 
@@ -242,6 +198,12 @@ impl App {
         let mut comp = Compounder::encapsulate(load);
 
         loop {
+
+            unsafe{
+                if QUIT {
+                    return App::quit(terminal);
+                }
+            }
 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
@@ -270,7 +232,12 @@ impl App {
 
             })?;
 
+            // over clocking "my cpu is overheating, will remove that after performance
+            // optimization : ("
+            thread::sleep(Duration::from_millis(150));
+
         }
+
 
     }
 
@@ -288,15 +255,7 @@ impl App {
                     COMMAND = Commands::Stop;
                     PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 
-                    // desired behavior
-                    // on stop state {
-                    //      unsafe{
-                    //          paused_duration += now - paused_start 
-                    //      }
-                    // }
-                    // paused_duration.add()
                 }
-
                 command_setter::Revert=>{
 
                     match COMMAND{
@@ -321,10 +280,6 @@ impl App {
 
     }
 
-    pub fn new(state: TimerState)->App{
-        App { state }
-    }
-
     pub fn quit(mut terminal:Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>>{
 
         execute!(
@@ -332,6 +287,8 @@ impl App {
             LeaveAlternateScreen,
             DisableMouseCapture,
         )?;
+
+        disable_raw_mode().unwrap();
 
         terminal.show_cursor()?;
 

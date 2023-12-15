@@ -14,17 +14,20 @@
   # can be an integer or a float between 0 and 1
   # need fixing for the floating point
   y = 0.4 
-  # duratoin of the cycle, should be an integer
+  # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
-  focus_duration = 10
-  # duratoin of the cycle, should be an integer
+  focus_duration = 6
+  # duratoin of the cycle in seconds, should be an integer
   # the duration of the resting state
-  rest_duration = 5
-  # number of cycles, should be a string of either a number 
-  # or the "inf" string for infinite cycles
-  max_cycles = "9"
-  # the number of the timer starts from, should be defaulted to 0
-  cycles = "3"
+  rest_duration = 3
+  # number of cycles, defaults to infinite and if not declared implicitly
+  max_cycles = 2
+  # the number of the timer starts from
+  cycles = 0
+  # path of the audio that will run when the focus phase starts
+  focus_alarm = "assets/hotel-bell-ding-1-174457.mp3"
+  # path of the audio that will run when the rest phase starts
+  rest_alarm = "assets/old-style-door-bell-101191.mp3"
 
 [Button]
   # widget collor, should be a string
@@ -41,5 +44,12 @@
   # postion of the widget in y direction
   # can be an integer or a float between 0 and 1
   y = 0.60
-  # the text displayed inside the button
-  title = "my_button"
+  # displayed banner on the focus state
+  focus_banner = ""
+  # displayed banner on the rest state
+  rest_banner = "rest"
+  # displayed banner on the pausing state
+  pause_banner = "pausing"
+
+  # TODO
+  clickable = false
