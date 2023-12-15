@@ -8,7 +8,7 @@ Tomodoro is a [pomdoro](https://en.wikipedia.org/wiki/Pomodoro_Technique) that r
 
 ## Screenshots
 
-![App Screenshot](assets/showcases/showcase.png)
+![App Screenshot](assets/showcases/showcase2.png)
 
 
 ## Environment Variables
