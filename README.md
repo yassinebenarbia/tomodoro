@@ -21,7 +21,7 @@ To run this project, you will need to have the following environment variable co
 Install my-project with npm
 * Clone the project:
 ```bash
-  git clone https://github.com/yassinebenarbia/Tomodoro.git
+git clone https://github.com/yassinebenarbia/Tomodoro.git
 ```
 * Install dependencies:
 ```bash
@@ -29,11 +29,11 @@ cd tomodoro && cargo install
 ```
 * Export the config path:
 ```bash
-  export TOMODORO_PATH=$(pwd)
+export TOMODORO_PATH=$(pwd)
 ```
 * Run the project
 ```bash
-  cargo run
+cargo run
 ```
 ##  Custom Options
 Under the `tomodoro.toml` you can invoke custom options 
