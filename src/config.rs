@@ -97,12 +97,11 @@ impl Config {
 }
 
 mod Test{
+    use std::fs;
 
-    
-    
-    use toml::{self};
+    use json::JsonValue;
 
-    
+    use crate::config::Config;
 
     #[test]
     fn should_work() {

@@ -15,7 +15,7 @@
 **/
 use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment}, io::{Stdout, Write}, thread};
 use std::io;
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self} };
+use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, EnableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self} };
 use once_cell::sync::Lazy;
 use tui::{
     backend::{Backend, CrosstermBackend},
@@ -38,20 +38,8 @@ pub static mut SMALL_PAUSED_DURATION:Duration = Duration::ZERO ;
 pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
 pub static mut CYCLES: u64 = 0;
 pub static mut QUIT: bool = false;
+pub static mut PHASE: &str = "focus";
 
-/// widget
-fn get_block<'a>(title: String) -> ButtonWidget<'a>{
-    return ButtonWidget::default()
-        .style(
-            Style::default()
-            .fg(Color::Red).bg(Color::Cyan)
-            .add_modifier(Modifier::BOLD | Modifier::ITALIC)
-        )
-        .title(title.clone()).title_alignment(Alignment::Center)
-        .borders(Borders::ALL);
-}
-
-// #[derive(Debug, Clone)]
 pub struct Dumy<'a>{
     field: Vec<(StatetWrapper<'a>, Rect)>
 }
@@ -211,11 +199,11 @@ impl App {
 
         loop {
 
-            // unsafe{
-            //     if QUIT {
-            //         return App::quit(terminal);
-            //     }
-            // }
+            unsafe{
+                if QUIT {
+                    return App::quit(terminal);
+                }
+            }
 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
@@ -244,9 +232,12 @@ impl App {
 
             })?;
 
+            // over clocking "my cpu is overheating, will remove that after performance
+            // optimization : ("
+            thread::sleep(Duration::from_millis(150));
+
         }
 
-        thread::sleep(Duration::from_millis(200));
 
     }
 
@@ -289,10 +280,6 @@ impl App {
 
     }
 
-    pub fn new(state: TimerState)->App{
-        App { state }
-    }
-
     pub fn quit(mut terminal:Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>>{
 
         execute!(
@@ -300,6 +287,8 @@ impl App {
             LeaveAlternateScreen,
             DisableMouseCapture,
         )?;
+
+        disable_raw_mode().unwrap();
 
         terminal.show_cursor()?;
 

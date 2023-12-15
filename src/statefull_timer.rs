@@ -8,7 +8,7 @@ use tui::{
 };
 // use simulate_input::{Key, KeyCode};
 
-use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT}, player::{Player}};
+use crate::{timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, State, trait_holder::TraitHolder, app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT, PHASE}, player::{Player}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)
@@ -201,7 +201,8 @@ impl Displayable for Timer {
         unsafe{
 
             // the phase of the timer, "focus" or "rest"
-            let phase = state.states.get("phase").expect("no start time is not provided");
+            let phase = state.states.get("phase")
+                .expect("unable to locate the focus_banner in the button_state");
 
             // the cyelces that the timer has gone through
             // intital value is 0
@@ -320,6 +321,7 @@ impl Displayable for Timer {
                             CYCLES+=1;
                             state.states.insert("cycles".to_string(), (cycles+CYCLES).to_string());
                             state.states.insert("phase".to_string(), "rest".to_string());
+                            PHASE = "rest";
 
                         }
                         
@@ -340,6 +342,7 @@ impl Displayable for Timer {
                             // another check, to know wether or not the 
                             // previous call is different or not from the current
                             state.states.insert("phase".to_string(), "focus".to_string());
+                            PHASE = "focus";
 
                             let rest_path =
                                 state.get_states().get("rest_alarm")

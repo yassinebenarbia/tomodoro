@@ -140,10 +140,6 @@ Vec<(Box<dyn StatefulWidget<State = State>>, Box<Rect>, Box<State>)>{
 
 }
 
-//TODO construct the function timer_state_constructor
-//TODO construct the function button_constructor
-//TODO construct the function button_state_constructor
-
 /// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
 /// returns a `Timer`
 pub fn construct_timer(values:& Value, term: &mut Terminal<CrosstermBackend<Stdout>>) -> Timer{
@@ -364,8 +360,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
     let mut x: u16 = fixer.xratio(40);
     let mut y: u16 = fixer.xratio(20);
 
-    let mut title = String::new();
-
     match values {
 
         // if the there is a table 
@@ -406,10 +400,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
 
                                             style = style.bg(tui::style::Color::Rgb(r, g, b));
                                         },
-
-                                        "title" => {
-                                            title = value.to_string();
-                                        }
 
                                         "width" => {
                                             match  value.as_float() {
@@ -530,7 +520,6 @@ pub fn construct_button<'b>(values:& Value, term: &mut Terminal<CrosstermBackend
             // toreturn.widget.title = Some(title.into());
 
             button_widget.style = style;
-            button_widget.title = Some(title.into());
 
             toreturn
                 .layout(x, y, width, height)
@@ -669,9 +658,6 @@ pub fn construct_button_state(values:& Value, _term: &mut Terminal<CrosstermBack
                                 for (key, value ) in v {
 
                                     match key.as_str() {
-                                        "title" => {
-                                            button_hasmap.insert(key.to_string(), value.to_string());
-                                        },
                                         "rest_banner" => {
                                             button_hasmap.insert(key.to_string(), value.to_string());
                                         },

@@ -12,10 +12,10 @@ use tui::{
     style::{Style}, layout::Rect, widgets::{Borders},
 };
 use crate::State::State;
+use crate::app::PHASE;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
 use crate::displayable::Displayable;
-use crate::trait_holder::{TraitHolder};
 
 //TODO: add layout and style
 //TODO: make a text struct that will held the text inside the button, if necessery
@@ -106,10 +106,6 @@ impl<'B> StatefulWidget for Button<'B> {
         let _x_mid:u16 = ((area.x + area.width) as i16 / 2 as i16) as u16;
         let _y_mid:u16 = ((area.y + area.height) as i16 / 2 as i16) as u16;
 
-        // println!("red thing: {:?}", Color::Red);
-        // panic!();
-
-
         // buffer style
         buf.set_style(
             self.get_layout(),
@@ -174,11 +170,26 @@ impl<'B> StatefulWidget for Button<'B> {
         let clicked = state.states.get("clicked")
             .expect("unable to locate clicked in the button_state state");
 
-        let s_displayed = state.states.get("focus_banner")
-            .expect("unable to locate the focus_banner in the button_state");
+        let mut displayed_banner: &String = &String::from("");
+
+        unsafe{
+
+            if PHASE == "focus" {
+                displayed_banner = state.states.get("focus_banner")
+                    .expect("unable to locate the focus_banner in the button_state");
+            } else if PHASE == "rest" {
+                displayed_banner = state.states.get("rest_banner")
+                    .expect("unable to locate the focus_banner in the button_state");
+            }else {
+                displayed_banner = state.states.get("pause_banner")
+                    .expect("unable to locate the focus_banner in the button_state");
+            }
+
+
+        }
 
         let focus_banner = Spans::from(vec![
-            Span::styled(s_displayed, Style::default().fg(Color::Yellow))
+            Span::styled(displayed_banner.trim_matches('"'), Style::default().fg(Color::Yellow))
         ]);
 
         // time
@@ -202,11 +213,15 @@ impl<'B> StatefulWidget for Button<'B> {
         let focus_banner_dx = area.width.saturating_sub(focus_banner.width() as u16) / 2;
         let focus_banner_dy = area.height / 2;
 
-        let time_x = area.left() + focus_banner_dx;
-        let time_y = area.top() +  focus_banner_dy;
+        let banner_x = area.left() + focus_banner_dx;
+        let banner_y = area.top() +  focus_banner_dy;
 
-        buf.set_spans(time_x, time_y, &focus_banner, focus_banner_width);
-
+        // to draw the banner, i need:
+        //  x cordinate
+        //  y cordinate
+        //  banner Spans
+        //  width
+        buf.set_spans(banner_x, banner_y, &focus_banner, focus_banner_width);
 
         if clicked.trim().parse::<bool>().unwrap() {
 
@@ -341,5 +356,3 @@ impl<'B> Displayable for  Button<'B>{
     }
 
 }
-
-impl<'B> TraitHolder for Button<'B>{}
