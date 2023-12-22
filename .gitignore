@@ -4,4 +4,5 @@ doc
 log
 logs
 .gitignore
+Cargo.lock
 benchmarking/
