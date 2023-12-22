@@ -74,7 +74,7 @@ Under the `tomodoro.toml` you can invoke custom options
 |focus_alarm     |path to an audio that will play on the start of the _focus_ phase, this path should under the `$TOMODORO_PATH` path                          |**String**                                       |
 |rest_alarm      |path to an audio that will play on the start of the _rest_ phase, this path should under the `$TOMODORO_PATH` path                           |**String**                                       |
 
-# Button
+### Button
 
 |Option          |Description                                                                                                                                   |Type                                             |
 |----------------|----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
