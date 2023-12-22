@@ -6,7 +6,7 @@
   outputs = {self, nixpkgs, ...}:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.leagacyPkgs.${system};
+      pkgs = nixpkgs.legacyPkgs.${system};
     in
     {
       devShells.${system}.default = (import ./shell.nix {inherit pkgs;});
