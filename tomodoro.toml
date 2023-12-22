@@ -16,10 +16,10 @@
   y = 0.4 
   # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
-  focus_duration = 6
+  focus_duration = 1500
   # duratoin of the cycle in seconds, should be an integer
   # the duration of the resting state
-  rest_duration = 3
+  rest_duration = 300
   # number of cycles, defaults to infinite and if not declared implicitly
   max_cycles = 2
   # the number of the timer starts from
@@ -45,7 +45,7 @@
   # can be an integer or a float between 0 and 1
   y = 0.60
   # displayed banner on the focus state
-  focus_banner = ""
+  focus_banner = "focus"
   # displayed banner on the rest state
   rest_banner = "rest"
   # displayed banner on the pausing state
