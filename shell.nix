@@ -9,5 +9,6 @@ pkgs.mkShell
   shellHook = ''
   echo "Hello, wellcome to your custom development shell"
   export TOMODORO_PATH=$(pwd)
+  echo ${pkgs.lib}
   '';
 }
