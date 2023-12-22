@@ -1,8 +1,0 @@
-/target
-*.txt
-*.lock
-doc
-log
-logs
-.gitignore
-benchmarking/
