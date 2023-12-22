@@ -1,8 +1,8 @@
 /target
 *.txt
+Cargo.lock
 doc
 log
 logs
 .gitignore
-Cargo.lock
 benchmarking/
