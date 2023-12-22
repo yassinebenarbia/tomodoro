@@ -22,6 +22,7 @@ To run this project, you will need to have the following environment variable co
 > NOTE: I'm still working on packaging it, so for now you can consider running the project under the development environment
 
 — Assuming that you have `rustc` and `cargo` installed.
+
 If your are under `NixOs` or have the `nix` package manager installed, you can simply:
 * Clone the project:
 ```bash
