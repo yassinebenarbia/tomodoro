@@ -1,5 +1,6 @@
 
 # Tomodoro 🦀
+___
 
 Tomodoro is a [pomdoro](https://en.wikipedia.org/wiki/Pomodoro_Technique) that runs on your beloved terminal
 * Note: this is under a slow development, if you believe that this project deserves more contribution don't hesitate to make a pull request and I'll be more than happy reviewing it
@@ -18,7 +19,24 @@ To run this project, you will need to have the following environment variable co
 `TOMODORO_PATH`: Path to the configuration file
 ## Try it out!
 
-Install my-project with npm
+> NOTE: I'm still working on packaging it, so for now you can consider running the project under the development environment
+
+— Assuming that you have `rustc` and `cargo` installed.
+If your are under `NixOs` or have the `nix` package manager installed, you can simply:
+* Clone the project:
+```bash
+git clone https://github.com/yassinebenarbia/Tomodoro.git
+```
+* start a shell session 
+```nix
+nix develop
+```
+* Run the project
+```bash
+cargo run
+```
+or else you can:
+
 * Clone the project:
 ```bash
 git clone https://github.com/yassinebenarbia/Tomodoro.git
