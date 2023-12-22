@@ -1,6 +1,6 @@
 /target
 *.txt
-Cargo.lock
+*.lock
 doc
 log
 logs
