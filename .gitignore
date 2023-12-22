@@ -1,7 +1,0 @@
-/target
-*.txt
-doc
-log
-logs
-.gitignore
-/benchmarking
