@@ -4,4 +4,4 @@ doc
 log
 logs
 .gitignore
-/benchmarking
+benchmarking/
