@@ -3,7 +3,7 @@
 ___
 
 Tomodoro is a [pomdoro](https://en.wikipedia.org/wiki/Pomodoro_Technique) that runs on your beloved terminal
-* Note: this is under a slow development, if you believe that this project deserves more contribution don't hesitate to make a pull request and I'll be more than happy reviewing it
+> Note: this is under a slow development, if you believe that this project deserves more contribution don't hesitate to make a pull request and I'll be more than happy reviewing it
 
 
 
