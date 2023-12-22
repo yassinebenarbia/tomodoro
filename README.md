@@ -30,7 +30,7 @@ git clone https://github.com/yassinebenarbia/Tomodoro.git
 ```
 * start a shell session 
 ```nix
-nix develop
+cd tomdodoro && nix develop
 ```
 * Run the project
 ```bash
@@ -40,7 +40,7 @@ or else you can:
 
 * Clone the project:
 ```bash
-git clone https://github.com/yassinebenarbia/Tomodoro.git
+git clone https://github.com/yassinebenarbia/tomodoro.git
 ```
 * Install dependencies:
 ```bash
@@ -74,7 +74,7 @@ Under the `tomodoro.toml` you can invoke custom options
 |focus_alarm     |path to an audio that will play on the start of the _focus_ phase, this path should under the `$TOMODORO_PATH` path                          |**String**                                       |
 |rest_alarm      |path to an audio that will play on the start of the _rest_ phase, this path should under the `$TOMODORO_PATH` path                           |**String**                                       |
 
-# Button
+### Button
 
 |Option          |Description                                                                                                                                   |Type                                             |
 |----------------|----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
