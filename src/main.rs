@@ -25,9 +25,6 @@ mod player;
 
 fn main() -> Result<(), io::Error> {
 
-
-    // std::env::set_var("RUST_LOG", "info");
-
     let app = App::default();
     let state = app.run();
 
