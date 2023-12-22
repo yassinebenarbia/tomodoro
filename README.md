@@ -30,7 +30,7 @@ git clone https://github.com/yassinebenarbia/Tomodoro.git
 ```
 * start a shell session 
 ```nix
-nix develop
+cd tomdodoro && nix develop
 ```
 * Run the project
 ```bash
@@ -40,7 +40,7 @@ or else you can:
 
 * Clone the project:
 ```bash
-git clone https://github.com/yassinebenarbia/Tomodoro.git
+git clone https://github.com/yassinebenarbia/tomodoro.git
 ```
 * Install dependencies:
 ```bash
