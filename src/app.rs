@@ -162,6 +162,7 @@ impl App {
 
     }
 
+
     pub fn run<'a>(self) -> Result<(), Box<dyn Error>>{
 
         // setup terminal
@@ -170,7 +171,7 @@ impl App {
         execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
-
+        
         // run the app
         let last_tick = Instant::now();
 

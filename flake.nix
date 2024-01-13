@@ -1,5 +1,5 @@
 {
-  description = "Testing";
+  description = "Trying to make a reproducable env for Tomodoro";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
   };

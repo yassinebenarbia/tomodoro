@@ -22,7 +22,6 @@ mod app;
 mod capabilities;
 mod player;
 
-
 fn main() -> Result<(), io::Error> {
 
     let app = App::default();
