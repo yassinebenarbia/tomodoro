@@ -9,7 +9,7 @@ use tui::{widgets::StatefulWidget, style::Style, Terminal, backend::CrosstermBac
 
 use crate::button_widget::ButtonWidget;
 use crate::stateful_button::Button;
-use crate::{ config::Config, State::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb}, widget_fixer::Fixer};
+use crate::{ config::Config, state::State, statefull_timer::Timer, timer_widget::TimerWidget, capabilities::{hex_to_rgb}, widget_fixer::Fixer};
 
 pub struct Constructor;
 

@@ -3,10 +3,10 @@ use std::io;
 use app::App;
 
 mod trait_holder;
-mod State;
+mod state;
 mod config;
 mod constructor;
-mod directions;
+mod commands;
 mod displayable;
 mod screen;
 mod widget_fixer;
@@ -29,7 +29,7 @@ fn main() -> Result<(), io::Error> {
 
     match state {
         Ok(_)=>println!("terminated successfully"),
-        Err(_)=>println!("Oh no! an Error occured")
+        Err(e)=>println!("Error occured: {e}")
     }
 
     Ok(())

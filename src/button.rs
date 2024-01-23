@@ -49,7 +49,7 @@ impl<'B> Default for Cadre<'B> {
 
 impl<'B> Cadre<'B>{
 
-    /// returns a Button instance
+    /// returns a Button instanceee
     pub fn new<'b>(frame: Rect, layout: Rect, widget: Block<'b>) -> Cadre<'b>{
 
         match compare_rect(&layout, &frame){

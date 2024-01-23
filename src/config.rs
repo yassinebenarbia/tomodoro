@@ -99,37 +99,12 @@ impl Config {
 mod Test{
     use std::fs;
 
-    use json::JsonValue;
-
     use crate::config::Config;
 
     #[test]
-    fn should_work() {
-
-        let mut env = std::env::var("TOMODORO_PATH").unwrap();
-
-        let sconfig = fs::read_to_string(env.clone()+"/tomodoro.json").unwrap();
-
-        let mut jconfig = json::parse(sconfig.as_str()).unwrap();
-        
-        let state = jconfig.contains(JsonValue::String("Timer".to_string()));
-
-        for value in jconfig["Timer"].entries() {
-            println!("{}", value.0);
-            println!("{}", value.1);
-        }
-
-        println!("{}",jconfig.has_key("Timer"));
-
-        println!("config structure:\n{}", jconfig["Timer"]);
-
-        println!("{:}", state);
-
-    }
 
     #[test]
     fn contains_test() {
-
         let tconfig = toml::de::from_str(r#"
             [Timer]
               color = '#000000'
@@ -149,12 +124,10 @@ mod Test{
         assert_eq!(true, conf.contains(key));
         key="";
         assert_eq!(false, conf.contains(key));
-
     }
 
     #[test]
     fn filter_test() {
-
         let tconfig = toml::de::from_str(r#"
             [Default]
               value = "Timer"
@@ -183,12 +156,10 @@ mod Test{
 
         println!("after filter:\n{}", returned);
         println!("subset: \n{}", returned[to_filter[0]]);
-
     }
     
     #[test]
     fn sort_test() {
-
         let tconfig = toml::de::from_str(r#"
             [Timer]
               color = '#000000'
@@ -221,7 +192,6 @@ mod Test{
         );
 
         println!("result:\n{:?}", result[0]);
-
     }
 
 }

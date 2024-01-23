@@ -46,11 +46,8 @@ impl<'a> Player<'a> {
 
 }
 
-mod Test{
+mod test{
     
-
-    
-
     #[test]
     fn play_test() {
 

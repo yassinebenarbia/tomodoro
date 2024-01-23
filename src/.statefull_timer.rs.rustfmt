@@ -10,11 +10,7 @@ use tui::{
 // use simulate_input::{Key, KeyCode};
 
 use crate::{
-    timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion},
-    displayable::Displayable, state, trait_holder::TraitHolder, 
-    app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT, PHASE},
-    player::{Player}
-};
+    timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion}, displayable::Displayable, state, trait_holder::TraitHolder, app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT, PHASE}, player::{Player}};
 
 /// This shall represent a Timer, as with the timer (TimerWidget),
 /// frame (rectangel), layout (rectangel) and time (duration)

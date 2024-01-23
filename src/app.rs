@@ -1,5 +1,7 @@
 /**
+ *
 * TODO: make the button respond to the click events
+*ds 
 * TODO: make the button display a custom banner for each state
 * TODO: make an option to custimize each banner for each state
 * TODO: add an option to toggle the click behavior
@@ -24,9 +26,13 @@ use tui::{
     Frame, style::{Style, Color, Modifier}, Terminal,
 };
 
+use crate::commands::{Commands, CommandSetter};
 use crate::{
+    screen::{StatetWrapper, Compounder},
     button_widget::ButtonWidget, timer_state::TimerState,
-    displayable::Displayable, screen::{ Compounder, StatetWrapper}, config::Config, directions::{Commands, command_setter}, constructor::{ self, construct_timer_state, construct_button_state}, State
+    displayable::Displayable,
+    config::Config, constructor::{ self, construct_timer_state, construct_button_state},
+    state::State
 };
 use std::sync::Once;
 
@@ -39,39 +45,6 @@ pub static mut PAUSED_START_TIME: Lazy<Duration> = Lazy::new(||{SystemTime::now(
 pub static mut CYCLES: u64 = 0;
 pub static mut QUIT: bool = false;
 pub static mut PHASE: &str = "focus";
-
-pub struct Dumy<'a>{
-    field: Vec<(StatetWrapper<'a>, Rect)>
-}
-
-impl<'a> Dumy<'a> {
-    pub fn new(field: Vec<(StatetWrapper<'a>, Rect)>) -> Dumy<'a> {
-        Dumy {field}
-    }
-
-    pub fn construct(material: Vec<(State::State, Rect)>) -> Compounder<'a>{
-
-        let mut toreturn = vec![];
-
-        for (state, rect) in material.iter() {
-            let constructed = state.clone();
-            toreturn.push((
-                 StatetWrapper{
-                    wrapped: constructed,
-                    up: None,
-                    down: None,
-                    right: None,
-                    left: None,
-                },
-                rect.clone()
-            ));
-            
-        }
-
-        return  Compounder::new(toreturn);
-        
-    }
-}
 
 pub struct App {
     state: TimerState
@@ -217,7 +190,7 @@ impl App {
                             return App::quit(terminal);
                         },
                         KeyCode::Char(' ') =>{
-                            App::command(command_setter::Revert);
+                            App::command(CommandSetter::Revert);
                         },
                         _ => {}
                     }
@@ -242,25 +215,22 @@ impl App {
 
     }
 
-    pub fn command(action: command_setter){
+    pub fn command(action: CommandSetter){
 
         unsafe{
 
             match action {
 
-                command_setter::Start => {
+                CommandSetter::Start => {
                     COMMAND = Commands::Start;
                     PAUSED_DURATION += SMALL_PAUSED_DURATION;
                 }
-                command_setter::Stop=>{
+                CommandSetter::Stop=>{
                     COMMAND = Commands::Stop;
                     PAUSED_START_TIME = Lazy::new(||{SystemTime::now().duration_since(UNIX_EPOCH).unwrap()});
-
                 }
-                command_setter::Revert=>{
-
+                CommandSetter::Revert=>{
                     match COMMAND{
-
                         // meaning that the timer will STOP
                         Commands::Start => {
                             COMMAND = Commands::Stop;
@@ -271,14 +241,10 @@ impl App {
                             COMMAND = Commands::Start;
                             PAUSED_DURATION += SMALL_PAUSED_DURATION;
                         }
-
                     }
                 }
-                
             }
-
         }
-
     }
 
     pub fn quit(mut terminal:Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>>{

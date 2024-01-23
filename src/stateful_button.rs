@@ -11,7 +11,7 @@ use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
     style::{Style}, layout::Rect, widgets::{Borders},
 };
-use crate::State::State;
+use crate::state::State;
 use crate::app::PHASE;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
@@ -329,7 +329,7 @@ impl<'B> Button<'B>{
 
 impl<'B> Displayable for  Button<'B>{
 
-    fn manage_state(&self, _state: &mut crate::State::State) {
+    fn manage_state(&self, _state: &mut crate::state::State) {
         todo!()
     }
 
