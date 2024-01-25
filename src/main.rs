@@ -2,17 +2,15 @@ use std::io;
 
 use app::App;
 
-mod trait_holder;
 mod state;
 mod config;
 mod constructor;
 mod commands;
 mod displayable;
 mod screen;
-mod widget_fixer;
 mod state_displayer;
 mod frame_util;
-mod statefull_timer;
+mod stateful_timer;
 mod timer_state; 
 mod timer_widget;
 mod button_widget;

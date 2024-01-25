@@ -165,9 +165,6 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(timer: Timer, button: Button)->Config{
-        Config { timer, button}
-    }
 
     /// this will
     /// 1) read the config path env variable
@@ -184,19 +181,10 @@ impl Config {
 
         conf
     }
-
-    /// checks wether the `self.conf` contains `key`
-    fn contains(&self, key:& str) -> bool {
-        todo!()
-    }
-
-    pub fn validate() -> bool{
-        todo!()
-    }
 }
 
 mod test{
-
+    #[allow(unused_imports)]
     use crate::config::Config;
 
     #[test]
@@ -238,5 +226,4 @@ mod test{
         assert_eq!(conf.button.y, 40.0);
         assert_eq!(conf.button.color.1, 0);
     }
-    
 }

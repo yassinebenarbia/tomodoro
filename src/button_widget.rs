@@ -23,66 +23,6 @@ pub struct ButtonWidget<'a> {
     pub style: Style,
 }
 
-impl<'a> ButtonWidget<'a> {
-
-    pub fn title<T>(mut self, title: T) -> ButtonWidget<'a>
-    where
-        T: Into<Spans<'a>>,
-    {
-        self.title = Some(title.into());
-        self
-    }
-
-    pub fn title_alignment(mut self, alignment: Alignment) -> ButtonWidget<'a> {
-        self.title_alignment = alignment;
-        self
-    }
-
-    pub fn border_style(mut self, style: Style) -> ButtonWidget<'a> {
-        self.border_style = style;
-        self
-    }
-
-    pub fn style(mut self, style: Style) -> ButtonWidget<'a> {
-        self.style = style;
-        self
-    }
-
-    pub fn borders(mut self, flag: Borders) -> ButtonWidget<'a> {
-        self.borders = flag;
-        self
-    }
-
-    pub fn border_type(mut self, border_type: BorderType) -> ButtonWidget<'a> {
-        self.border_type = border_type;
-        self
-    }
-
-    pub fn get_title(&mut self) -> Option<Spans<'a>>{
-        self.title.clone()
-    }
-
-    pub fn get_title_alignment(&mut self) -> Alignment{
-        self.title_alignment.clone()
-    }
-
-    pub fn get_borders(&mut self) -> Borders{
-        self.borders.clone()
-    }
-
-    pub fn get_border_style(&mut self) -> Style{
-        self.border_style.clone()
-    }
-
-    pub fn get_border_type(&mut self) -> BorderType{
-        self.border_type.clone()
-    }
-
-    pub fn get_style(&mut self) -> Style{
-        self.style.clone()
-    }
-    
-}
 
 impl<'a> Default for ButtonWidget<'a> {
     fn default() -> Self {

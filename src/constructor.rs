@@ -9,7 +9,7 @@ use tui::{style::Style, Terminal, backend::CrosstermBackend};
 
 use crate::button_widget::ButtonWidget;
 use crate::stateful_button::Button;
-use crate::{ config::Config, state::State, statefull_timer::Timer, timer_widget::TimerWidget,};
+use crate::{ config::Config, state::State, stateful_timer::Timer, timer_widget::TimerWidget,};
 
 
 /// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
@@ -185,8 +185,7 @@ pub fn construct_button_rect(conf: &Config, terminal_rect: &Rect) -> Rect{
 }
 
 
-mod Test{
-    
+mod test{
     #![allow(unused_imports)]
     use std::io::stdout;
 
@@ -211,8 +210,12 @@ mod Test{
               x = 20
               y = 10
         "#).unwrap();
-
-        todo!();
+        assert_eq!(config.timer.color.0, 0); 
+        assert_eq!(config.timer.color.1, 0);
+        assert_eq!(config.timer.color.2, 0);
+        assert_eq!(config.button.width, 0.5);
+        assert_eq!(config.button.height, 0.3);
+        assert_eq!(config.timer.x, 10.0);
+        assert_eq!(config.timer.y, 10.0);
     }
-
 }

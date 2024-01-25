@@ -8,15 +8,14 @@ pub struct Player<'a> {
 }
 
 impl<'a> Player<'a> {
-
     pub fn new(file_path: &'a String) -> Self{
         Player {
             file_path: path::Path::new(file_path)
         }
     }
 
+    #[allow(unused)]
     pub fn play(&self) {
-
         let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
         let sink = rodio::Sink::try_new(&handle).unwrap();
 
@@ -25,12 +24,9 @@ impl<'a> Player<'a> {
         sink.append(source);
 
         sink.sleep_until_end();
-
     }
 
     pub fn play_until(&self, duration: Duration) {
-
-
         let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
         let sink = rodio::Sink::try_new(&handle).unwrap();
 
@@ -41,30 +37,27 @@ impl<'a> Player<'a> {
         sink.append(source);
 
         sink.sleep_until_end();
-
     }
-
 }
 
 mod test{
+    #[allow(unused_imports)]
+    use std::time::Duration;
+    #[allow(unused_imports)]
+    use crate::player::Player;
     
     #[test]
     fn play_test() {
-
         // let path = String::from("assets/hotel-bell-ding-1-174457.mp3");
-        let path = String::from("assets/old-style-door-bell-101191.mp3");
+        // let path = String::from("assets/old-style-door-bell-101191.mp3");
         // let player = Player::new(&path);
         // player.play();
-
     }
 
     #[test]
     fn play_until_test() {
-
         let path = String::from("assets/old-style-door-bell-101191.mp3");
-        // let player = Player::new(&path);
-        // player.play_until(Duration::from_secs(2));
-        
+        let player = Player::new(&path);
+        player.play_until(Duration::from_secs(2));
     }
-
 }

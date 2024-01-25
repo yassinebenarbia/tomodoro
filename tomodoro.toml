@@ -31,7 +31,7 @@
 
 [Button]
   # widget collor, should be a string
-  color= "#BBBF20"
+  color= "#BBBF2A"
   # widget background color
   background_color = "#B54929"
   # widget width, can be an integer or a float between 0 and 1

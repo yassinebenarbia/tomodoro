@@ -37,7 +37,6 @@ use tui::{
 use crate::{
     commands::{Commands, CommandSetter},
     screen::Compounder,
-    timer_state::TimerState,
     config::Config, constructor::{
         self, construct_timer_state, construct_button_state,
         construct_timer_rect, construct_button_rect
@@ -52,9 +51,7 @@ pub static mut CYCLES: u64 = 0;
 pub static mut QUIT: bool = false;
 pub static mut PHASE: &str = "focus";
 
-pub struct App {
-    state: TimerState
-}
+pub struct App {}
 
 impl App {
     pub fn renderui<'a, B>(
@@ -77,6 +74,7 @@ impl App {
             &mut terminal,
             conf
         );
+
 
         let button_layout = button.layout.clone();
         let timer_layout = timer.layout.clone();
@@ -234,8 +232,6 @@ impl App {
 
 impl Default for App{
     fn default() -> Self {
-        App {
-            state: TimerState::default()
-        }
+        App {}
     }
 }

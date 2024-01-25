@@ -24,13 +24,10 @@ impl runner{
         let last_tick = Instant::now();
 
         loop {
-
             terminal.draw(|f| {
-
                 ui(f);
-
             })?;
-
+            
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
                 .unwrap_or_else(|| Duration::from_secs(0));
