@@ -1,19 +1,19 @@
 [Timer]
   # widget collor, should be a string
-  color = '#FFAF00'
+  color = '#FFAFA0'
   # widget background color
-  background_color = "#050399"
+  background_color = "#FFFFAA"
   # widget width, can be an integer or a float between 0 and 1
-  width = 0.3
+  width = 1.0
   # widget height, can be an integer or a float between 0 and 1
   height = 0.2
   # postion of the widget in x direction
   # can be an integer or a float between 0 and 1
-  x = 0.35
+  x = 0.0
   # postion of the widget in y direction
   # can be an integer or a float between 0 and 1
   # need fixing for the floating point
-  y = 0.4 
+  y = 0.3
   # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
   focus_duration = 5 
@@ -50,6 +50,3 @@
   rest_banner = "rest"
   # displayed banner on the pausing state
   pause_banner = "paused"
-
-  # TODO
-  clickable = false

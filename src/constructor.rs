@@ -7,9 +7,11 @@ use tui::style::Modifier;
 use tui::widgets::{Borders, BorderType};
 use tui::{style::Style, Terminal, backend::CrosstermBackend};
 
-use crate::button_widget::ButtonWidget;
-use crate::stateful_button::Button;
-use crate::{ config::Config, state::State, stateful_timer::Timer, timer_widget::TimerWidget,};
+use crate::{
+    button_widget::ButtonWidget ,stateful_button::Button,
+    config::Config, state::State, stateful_timer::Timer,
+    timer_widget::TimerWidget
+};
 
 
 /// Constructs the `Timer` widget based on the `Values` provided on the `values` parameter.\
@@ -129,25 +131,25 @@ pub fn construct_button_state(conf:& Config, _term: &mut Terminal<CrosstermBacke
 }
 
 pub fn construct_timer_rect(conf: &Config, terminal_rect: &Rect) -> Rect{
-    let x = if conf.timer.x < 1.0 {
+    let x = if conf.timer.x <= 1.0 {
          (conf.timer.x * terminal_rect.width as f32) as u16
     }else{
         conf.timer.x as u16
     };
 
-    let y = if conf.timer.y < 1.0 {
+    let y = if conf.timer.y <= 1.0 {
          (conf.timer.y * terminal_rect.height as f32) as u16
     }else{
         conf.timer.y as u16
     };
 
-    let width = if conf.timer.width < 1.0 {
+    let width = if conf.timer.width <= 1.0 {
          (conf.timer.width * terminal_rect.width as f32) as u16
     }else{
         conf.timer.width as u16
     };
 
-    let height = if conf.timer.height< 1.0 {
+    let height = if conf.timer.height <= 1.0 {
          (conf.timer.height * terminal_rect.height as f32) as u16
     }else{
         conf.timer.height as u16
@@ -156,26 +158,27 @@ pub fn construct_timer_rect(conf: &Config, terminal_rect: &Rect) -> Rect{
     return Rect{ x, y, width, height}
 }
 
+/// constructs `Button`'s `Rect` from the given `Config` and the terminal `Rect`
 pub fn construct_button_rect(conf: &Config, terminal_rect: &Rect) -> Rect{
-    let x = if conf.button.x < 1.0 {
+    let x = if conf.button.x <= 1.0 {
          (conf.button.x * terminal_rect.width as f32) as u16
     }else{
         conf.button.x as u16
     };
 
-    let y = if conf.button.y < 1.0 {
+    let y = if conf.button.y <= 1.0 {
          (conf.button.y * terminal_rect.height as f32) as u16
     }else{
         conf.button.y as u16
     };
 
-    let width = if conf.button.width < 1.0 {
+    let width = if conf.button.width <= 1.0 {
          (conf.button.width * terminal_rect.width as f32) as u16
     }else{
         conf.button.width as u16
     };
 
-    let height = if conf.button.height< 1.0 {
+    let height = if conf.button.height<= 1.0 {
          (conf.button.height * terminal_rect.height as f32) as u16
     }else{
         conf.button.height as u16

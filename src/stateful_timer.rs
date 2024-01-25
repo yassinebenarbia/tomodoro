@@ -21,7 +21,7 @@ use crate::{
 pub struct Timer{
     /// The Counting duration
     pub time: Duration,
-    /// Frame
+    /// Frame, the acrea which this widget is enveloped on
     pub frame: Rect,
     /// The area in which the timer is displayed
     pub layout: Rect,
@@ -29,11 +29,6 @@ pub struct Timer{
     /// Holds style, borders, border_style and border_type
     pub widget: TimerWidget
 }
-// TODO: add the ability to change the style of 
-// the displayed time
-// NOTE: we can't specify the time step here, as it should 
-// be controlled by on the loop, as we are not sure that 
-// it will be renderd infinitely or just once
 
 impl Default for Timer {
     fn default() -> Self {
@@ -63,7 +58,6 @@ impl StatefulWidget for Timer {
         }
 
         buf.set_style(area, self.widget.style);
-        // TODO: inspect what this line do
         let symbols = BorderType::line_symbols(self.widget.border_type);
         // sides
         if self.widget.borders.intersects(Borders::LEFT) {
@@ -375,6 +369,8 @@ impl Displayable for Timer {
 impl Timer {
     pub fn layout(&mut self, x: u16, y: u16, width: u16, height: u16) -> &mut Self{
         let layout = Rect::new(x, y, width, height);
+
+        // the frame determine the space the widget "claims" to be it's contour
         match compare_rect(&self.frame, &layout){
             Ok(_)=>{
                 self.layout = layout;
