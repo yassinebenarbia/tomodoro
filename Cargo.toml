@@ -10,7 +10,7 @@ once_cell = "1.8"
 tui = "0.19"
 crossterm = "0.25"
 rand = "0.8.5"
-serde = "1.0.190"
+serde = { version = "1.0.190", features = [ "derive" ] }
 toml = "0.8.6"
 enigo = "0.1.3"
 rodio = "0.17.3"

@@ -1,6 +1,6 @@
 [Timer]
   # widget collor, should be a string
-  color = '#FFFF00'
+  color = '#FFAF00'
   # widget background color
   background_color = "#050399"
   # widget width, can be an integer or a float between 0 and 1
@@ -16,10 +16,10 @@
   y = 0.4 
   # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
-  focus_duration = 1500
+  focus_duration = 5 
   # duratoin of the cycle in seconds, should be an integer
   # the duration of the resting state
-  rest_duration = 300
+  rest_duration = 3
   # number of cycles, defaults to infinite and if not declared implicitly
   max_cycles = 2
   # the number of the timer starts from
@@ -31,7 +31,7 @@
 
 [Button]
   # widget collor, should be a string
-  color= "#AABF20"
+  color= "#BBBF20"
   # widget background color
   background_color = "#B54929"
   # widget width, can be an integer or a float between 0 and 1
@@ -49,7 +49,7 @@
   # displayed banner on the rest state
   rest_banner = "rest"
   # displayed banner on the pausing state
-  pause_banner = "pausing"
+  pause_banner = "paused"
 
   # TODO
   clickable = false

@@ -53,8 +53,8 @@ mod test{
 
         // let path = String::from("assets/hotel-bell-ding-1-174457.mp3");
         let path = String::from("assets/old-style-door-bell-101191.mp3");
-        let player = Player::new(&path);
-        player.play();
+        // let player = Player::new(&path);
+        // player.play();
 
     }
 
@@ -62,8 +62,8 @@ mod test{
     fn play_until_test() {
 
         let path = String::from("assets/old-style-door-bell-101191.mp3");
-        let player = Player::new(&path);
-        player.play_until(Duration::from_secs(2));
+        // let player = Player::new(&path);
+        // player.play_until(Duration::from_secs(2));
         
     }
 

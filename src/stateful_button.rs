@@ -328,7 +328,6 @@ impl<'B> Button<'B>{
 }
 
 impl<'B> Displayable for  Button<'B>{
-
     fn manage_state(&self, _state: &mut crate::state::State) {
         todo!()
     }
@@ -347,12 +346,8 @@ impl<'B> Displayable for  Button<'B>{
     fn height(&self) -> u16 {
         todo!()
     }
-    fn highlight(&self) {
-        todo!()
-    }
 
     fn layout(&self)->Rect {
         self.layout.clone()
     }
-
 }

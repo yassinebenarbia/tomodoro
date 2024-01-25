@@ -29,7 +29,7 @@ fn main() -> Result<(), io::Error> {
 
     match state {
         Ok(_)=>println!("terminated successfully"),
-        Err(e)=>println!("Error occured: {e}")
+        Err(e)=>println!("Error occured: {}", e)
     }
 
     Ok(())

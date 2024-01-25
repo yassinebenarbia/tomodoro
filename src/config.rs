@@ -1,111 +1,207 @@
-use std::{fs, collections::BTreeMap};
+use std::fs;
+use serde::{Serialize, Deserialize, de::{self, Visitor}};
 
-use toml::Value;
+#[derive(Debug, Clone, Copy)]
+pub struct RGB(pub u8, pub u8, pub u8);
 
-#[derive(Debug, Clone)]
-/// struct resemble the Config structure
+//                        Deserialization
+// Toml Representation -------------------> Config Structure Object
+//                        Serialization
+// Toml Representation <------------------- Config Structure Object
+impl Serialize for RGB{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(
+            format!("#{:02X}{:02X}{:02X}",self.0, self.1, self.2).as_str()
+        )
+    }
+}
+
+impl<'de> Deserialize<'de> for RGB {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            #[derive(Debug)]
+            struct RGBVisitor;
+
+            impl<'de> Visitor<'de> for  RGBVisitor{
+
+                type Value=RGB;
+
+                fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    formatter.write_str("tuple struct RGB")
+                }
+
+
+                fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+                    where
+                        A: de::SeqAccess<'de>, 
+                    {
+
+                        let r = match seq.next_element::<u8>()?{
+                            Some(value) => value,
+                            None => panic!("missing read value in {:#?}", self)
+                        };
+
+                        let g = match seq.next_element()?{
+                            Some(value) => value,
+                            None => panic!("missing green value in {:#?}", self)
+                        };
+
+                        let b = match seq.next_element()?{
+                            Some(value) => value,
+                            None => panic!("missing blue value in {:#?}", self)
+                        };
+                        Ok(RGB(r,g,b))
+                    }
+
+
+                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                    where
+                        E: de::Error,
+                    {
+                        let num = u32::from_str_radix(&v[1..7], 16).unwrap();
+
+                        let r:u8 = (num >> 16).try_into().unwrap();
+                        let g:u8 = (num >> 8 & 65280 >> 8).try_into().unwrap();
+                        let b:u8 = (num & 255).try_into().unwrap();
+
+                        Ok(RGB(r,g,b))
+                    }
+                }
+
+            deserializer.deserialize_str(RGBVisitor)
+        }  
+}
+
+struct TimerDefaults;
+impl TimerDefaults {
+    pub fn color()->RGB{ RGB(220,190,90) }
+    pub fn background_color()->RGB{ RGB(20,90,210) }
+    pub fn width()->f32{0.3}
+    pub fn height()->f32{0.2}
+    pub fn x()->f32{0.35}
+    pub fn y()->f32{0.4}
+    pub fn focus_duration()->u32{1500}
+    pub fn rest_duration()->u32{300}
+    pub fn max_cycles()->u8{10}
+    pub fn cycles()->u8{0}
+    pub fn focus_alarm()->String{ String::from("") }
+    pub fn rest_alarm()->String{ String::from("") }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct Timer{
+    #[serde(default = "TimerDefaults::color")]
+    pub color: RGB,
+    #[serde(default = "TimerDefaults::background_color")]
+    pub background_color: RGB,
+    #[serde(default = "TimerDefaults::width")]
+    pub width: f32,
+    #[serde(default = "TimerDefaults::height")]
+    pub height: f32,
+    #[serde(default = "TimerDefaults::x")]
+    pub x: f32,
+    #[serde(default = "TimerDefaults::y")]
+    pub y: f32,
+    #[serde(default = "TimerDefaults::focus_duration")]
+    pub focus_duration: u32,
+    #[serde(default = "TimerDefaults::rest_duration")]
+    pub rest_duration: u32,
+    #[serde(default = "TimerDefaults::max_cycles")]
+    pub max_cycles: u8,
+    #[serde(default = "TimerDefaults::cycles")]
+    pub cycles: u8,
+    #[serde(default = "TimerDefaults::focus_alarm")]
+    pub focus_alarm: String,
+    #[serde(default = "TimerDefaults::rest_alarm")]
+    pub rest_alarm: String,
+}
+
+struct ButtonDefaults;
+impl ButtonDefaults {
+    fn color()->RGB{ RGB(200,120,130) }
+    fn background_color()->RGB{ RGB(120,190,100) }
+    fn width()->f32{0.3}
+    fn height()->f32{0.2}
+    fn x()->f32{0.35}
+    fn y()->f32{0.6}
+    fn focus_banner()->String{ String::from("focus") }
+    fn rest_banner()->String{ String::from("rest") }
+    fn pause_banner()->String{ String::from("pause") }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct Button{
+    #[serde(default = "ButtonDefaults::color")]
+    pub color: RGB,
+    #[serde(default = "ButtonDefaults::background_color")]
+    pub background_color: RGB,
+    #[serde(default = "ButtonDefaults::width")]
+    pub width: f32,
+    #[serde(default = "ButtonDefaults::height")]
+    pub height: f32,
+    #[serde(default = "ButtonDefaults::x")]
+    pub x: f32,
+    #[serde(default = "ButtonDefaults::y")]
+    pub y: f32,
+    #[serde(default = "ButtonDefaults::focus_banner")]
+    pub focus_banner: String,
+    #[serde(default = "ButtonDefaults::rest_banner")]
+    pub rest_banner: String,
+    #[serde(default = "ButtonDefaults::pause_banner")]
+    pub pause_banner: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
-    pub conf: toml::Value
+    #[serde(rename = "Button")]
+    pub button: Button,
+    #[serde(rename = "Timer")]
+    pub timer: Timer,
 }
 
 impl Config {
-
-    pub fn new(conf: toml::Value)->Config{
-        Config { conf }
+    pub fn new(timer: Timer, button: Button)->Config{
+        Config { timer, button}
     }
 
     /// this will
     /// 1) read the config path env variable
     /// 2) check for the default file name 
-    /// 3) parse file
+    /// 3) deserialize the file 
     pub fn read() -> Config{
-
         // reading the env variable for the config path
         let env = std::env::var("TOMODORO_PATH").unwrap();
 
         // stands for string config
         let sconfig = fs::read_to_string(env.clone()+"/tomodoro.toml").unwrap();
 
-        let conf = toml::de::from_str(sconfig.as_str()).unwrap();
+        let conf:Config = toml::de::from_str(sconfig.as_str()).unwrap();
 
-        Config{
-            conf
-        }
-
+        conf
     }
 
     /// checks wether the `self.conf` contains `key`
     fn contains(&self, key:& str) -> bool {
-
-        if let toml::Value::Table(table) = &self.conf{
-            return  table.contains_key(key);
-        }
-
-        false
-        
-    }
-
-    pub fn filter(&self, v:& Vec<&str>) -> toml::Value{
-
-        let mut toml_table = toml::Value::Table(toml::map::Map::new());
-
-        for widget in v {
-            if self.contains(widget) {
-                toml_table.as_table_mut().unwrap().insert(
-                    widget.to_string().clone(),
-                    self.conf[widget].clone()
-                );
-            }
-        }
-
-        toml_table
-
+        todo!()
     }
 
     pub fn validate() -> bool{
         todo!()
     }
-
-    /// sorts the given `config.conf` struct field with respect to the
-    /// `key` parameter
-    pub fn sort_with(&self, key: String, _value_type: String) -> Vec<(String, Value)>{
-
-        if let toml::Value::Table(table) = self.conf.clone(){
-
-            let mut sorted_table: BTreeMap<String, toml::Value> = BTreeMap::new();
-
-            for (key, value) in table.iter() {
-                sorted_table.insert(key.clone(), value.clone());
-            }
-
-            let mut temp: Vec<(String, Value)> = sorted_table.into_iter().collect();
-
-            let key_to_sort_by = key;
-
-            temp.sort_by_key(|key|{
-                key.1.get(key_to_sort_by.clone()).unwrap().as_integer()
-            });
-
-            return temp;
-
-        }
-
-        Vec::new()
-
-    }
-
 }
 
-mod Test{
-    use std::fs;
+mod test{
 
     use crate::config::Config;
 
     #[test]
-
-    #[test]
     fn contains_test() {
-        let tconfig = toml::de::from_str(r#"
+        let conf:Config = toml::de::from_str(r#"
             [Timer]
               color = '#000000'
               width = 0.5
@@ -113,24 +209,15 @@ mod Test{
               x = 20
               y = 40
         "#).unwrap();
-
-        let conf = Config {
-            conf: tconfig,
-        };
-
-        let mut key = "thing";
-        assert_eq!(false, conf.contains(key));
-        key = "Timer";
-        assert_eq!(true, conf.contains(key));
-        key="";
-        assert_eq!(false, conf.contains(key));
+        assert_eq!(conf.timer.color.0, 0);
+        assert_eq!(conf.timer.color.2, 0);
+        assert_eq!(conf.timer.width, 0.5);
+        assert_eq!(conf.timer.y, 40.0);
     }
 
     #[test]
     fn filter_test() {
-        let tconfig = toml::de::from_str(r#"
-            [Default]
-              value = "Timer"
+        let conf:Config = toml::de::from_str(r#"
             [Timer]
               color = '#000000'
               width = 0.5
@@ -146,52 +233,10 @@ mod Test{
             
         "#).unwrap();
 
-        let conf = Config {
-            conf: tconfig,
-        };
-
-        let to_filter = vec!["Timer", "Default"];
-
-        let returned = conf.filter(&to_filter);
-
-        println!("after filter:\n{}", returned);
-        println!("subset: \n{}", returned[to_filter[0]]);
+        assert_eq!(conf.button.width, 0.5);
+        assert_eq!(conf.button.x, 20.0);
+        assert_eq!(conf.button.y, 40.0);
+        assert_eq!(conf.button.color.1, 0);
     }
     
-    #[test]
-    fn sort_test() {
-        let tconfig = toml::de::from_str(r#"
-            [Timer]
-              color = '#000000'
-              width = 0.5
-              height = 0.4
-              x = 10
-              y = 40
-            [Button]
-              color = '#000000'
-              width = 0.5
-              height = 0.4
-              x = 20
-              y = 10
-            [Widget]
-              color = '#000000'
-              width = 0.5
-              height = 0.4
-              x = 0
-              y = 10
-        "#).unwrap();
-
-        let conf = Config {
-            conf: tconfig,
-        };
-
-        let result = conf.sort_with("y".to_string(), "integer".to_string());
-
-        assert_eq!(
-            result[0].0,String::from("Button")
-        );
-
-        println!("result:\n{:?}", result[0]);
-    }
-
 }

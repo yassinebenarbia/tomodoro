@@ -1,7 +1,6 @@
 /**
  *
 * TODO: make the button respond to the click events
-*ds 
 * TODO: make the button display a custom banner for each state
 * TODO: make an option to custimize each banner for each state
 * TODO: add an option to toggle the click behavior
@@ -15,28 +14,35 @@
 * TODO: add a cycles counter that displayes the number of cycles
 * TODO: add an option to toggle the visibility of each object
 **/
-use std::{time::{Duration, Instant, SystemTime, UNIX_EPOCH}, error::Error, fmt::{Alignment}, io::{Stdout, Write}, thread};
 use std::io;
-use crossterm::{terminal::{enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, EnableLineWrap}, execute, event::{EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self} };
 use once_cell::sync::Lazy;
+use std::{
+    time::{
+        Duration, Instant, SystemTime, UNIX_EPOCH
+    },
+    error::Error, io::Stdout, thread
+};
+use crossterm::{
+    terminal::{
+        enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode
+    },
+    execute, event::{
+        EnableMouseCapture, DisableMouseCapture, KeyCode, Event, self
+    }, 
+};
 use tui::{
     backend::{Backend, CrosstermBackend},
-    widgets::{Borders},
-    layout::{Rect},
-    Frame, style::{Style, Color, Modifier}, Terminal,
+    Frame, Terminal,
 };
-
-use crate::commands::{Commands, CommandSetter};
 use crate::{
-    screen::{StatetWrapper, Compounder},
-    button_widget::ButtonWidget, timer_state::TimerState,
-    displayable::Displayable,
-    config::Config, constructor::{ self, construct_timer_state, construct_button_state},
-    state::State
+    commands::{Commands, CommandSetter},
+    screen::Compounder,
+    timer_state::TimerState,
+    config::Config, constructor::{
+        self, construct_timer_state, construct_button_state,
+        construct_timer_rect, construct_button_rect
+    },
 };
-use std::sync::Once;
-
-static INIT: Once = Once::new();
 
 pub static mut COMMAND: Commands = Commands::Start;
 pub static mut PAUSED_DURATION:Duration = Duration::ZERO ;
@@ -51,10 +57,6 @@ pub struct App {
 }
 
 impl App {
-
-    // TODO loop through the provided widgets and states paires and display thme accordingly
-    /// NOTE the config parameter should become a toml table
-
     pub fn renderui<'a, B>(
         f: & mut Frame<'a ,B>,
         conf: &Config,
@@ -67,35 +69,29 @@ impl App {
         let mut terminal = Terminal::new(backend).unwrap();
 
         let timer = constructor::construct_timer(
-            &conf.filter(&vec!["Timer"]),
-            &mut terminal
+            &mut terminal,
+            conf
         );
-        
+
         let button = constructor::construct_button(
-            &conf.filter(&vec!["Button"]),
-            &mut terminal
+            &mut terminal,
+            conf
         );
 
         let button_layout = button.layout.clone();
         let timer_layout = timer.layout.clone();
 
         if let Some(value) = comp.states.get_mut(0){
-
-            let state = &mut value.0.wrapped;
-
+            let state = &mut value.0;
             unsafe{
-
                 match COMMAND {
-
                     Commands::Stop=>{
                         state.states.insert("working".to_string(), "false".to_string());
                     },
                     Commands::Start=>{
                         state.states.insert("working".to_string(), "true".to_string());
                     },
-
                 }
-
             }
 
             f.render_stateful_widget(
@@ -103,41 +99,30 @@ impl App {
                 timer_layout,
                 state,
             );
-
         }
 
         if let Some(value) = comp.states.get_mut(1){
-
-            let state = &mut value.0.wrapped;
-
+            let state = &mut value.0;
             unsafe{
-
                 match COMMAND {
-
                     Commands::Stop=>{
                         state.states.insert("working".to_string(), "false".to_string());
                     },
                     Commands::Start=>{
                         state.states.insert("working".to_string(), "true".to_string());
                     },
-
                 }
-
             }
 
             f.render_stateful_widget(
                 button,
                 button_layout,
                 state
-            );
-
+                );
         }
-
     }
 
-
     pub fn run<'a>(self) -> Result<(), Box<dyn Error>>{
-
         // setup terminal
         enable_raw_mode()?;
         let mut stdout = io::stdout();
@@ -149,20 +134,13 @@ impl App {
         let last_tick = Instant::now();
 
         let conf = Config::read();
+        let r = terminal.size().unwrap();
 
-        let timer_conf = conf.filter(&vec!["Timer"]);
-        let button_conf = conf.filter(&vec!["Button"]);
+        let timer_rect = construct_timer_rect(&conf, &r);
+        let button_rect = construct_button_rect(&conf, &r);
 
-        let timer_rect = Compounder::get_rect(
-            &conf, String::from("Timer"), &mut terminal
-        );
-        let button_rect = Compounder::get_rect(
-            &conf, String::from("Button"), &mut terminal
-        );
-
-        let timer_state = construct_timer_state(&timer_conf, &mut terminal);
-
-        let button_state = construct_button_state(&button_conf, &mut terminal);
+        let timer_state = construct_timer_state(&conf, &mut terminal);
+        let button_state = construct_button_state(&conf, &mut terminal);
         
         let load = vec![
             (timer_state, timer_rect),
@@ -172,13 +150,13 @@ impl App {
         let mut comp = Compounder::encapsulate(load);
 
         loop {
-
             unsafe{
                 if QUIT {
                     return App::quit(terminal);
                 }
             }
 
+            // avoid overheading the system 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
                 .unwrap_or_else(|| Duration::from_secs(0));
@@ -198,29 +176,21 @@ impl App {
             }
 
             terminal.draw(|f| {
-
                 App::renderui::<CrosstermBackend<Stdout>>(f,
                     &conf,
                     &mut comp
                 );
-
             })?;
 
-            // over clocking "my cpu is overheating, will remove that after performance
+            // Note: "my cpu is overheating, will remove that after performance
             // optimization : ("
             thread::sleep(Duration::from_millis(150));
-
         }
-
-
     }
 
     pub fn command(action: CommandSetter){
-
         unsafe{
-
             match action {
-
                 CommandSetter::Start => {
                     COMMAND = Commands::Start;
                     PAUSED_DURATION += SMALL_PAUSED_DURATION;
@@ -248,7 +218,6 @@ impl App {
     }
 
     pub fn quit(mut terminal:Terminal<CrosstermBackend<Stdout>>) -> Result<(), Box<dyn Error>>{
-
         execute!(
             terminal.backend_mut(),
             LeaveAlternateScreen,
@@ -260,9 +229,7 @@ impl App {
         terminal.show_cursor()?;
 
         Ok(())
-
     }
-    
 }
 
 impl Default for App{

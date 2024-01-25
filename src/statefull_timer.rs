@@ -2,7 +2,6 @@ use std::{
     time::{Duration,SystemTime, UNIX_EPOCH}, io::{self}, fmt::Debug, thread::{self}
 };
 
-
 use tui::{
     layout::Rect, backend::CrosstermBackend, Terminal, widgets::{StatefulWidget, BorderType, Borders},
     text::{Spans, Span}, style::{Color, Style}
@@ -11,7 +10,7 @@ use tui::{
 
 use crate::{
     timer_widget::TimerWidget, capabilities::{compare_rect, time_conversion},
-    displayable::Displayable, state, trait_holder::TraitHolder, 
+    displayable::Displayable, state, 
     app::{PAUSED_DURATION, PAUSED_START_TIME, SMALL_PAUSED_DURATION, CYCLES, QUIT, PHASE},
     player::{Player}
 };
@@ -52,7 +51,6 @@ impl Default for Timer {
 impl StatefulWidget for Timer {
     type State = state::State;
     fn render(self, area: Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State) {
-
         // checks the steate,
         // if the displayed time is eqal to the sate time
         // 1) substract time_step from the displayed time 
@@ -60,7 +58,6 @@ impl StatefulWidget for Timer {
         // if the displayed time is not equal to zero
         // 1) substract time_step from the displayed time 
         // 2) render the widget
-
         if area.area() == 0 {
             return;
         }
@@ -179,17 +176,11 @@ impl StatefulWidget for Timer {
                 }
             }
         }   
-
     }
-
 }
 
 /// TODO undoo this
 impl Displayable for Timer {
-
-    fn highlight(&self) {
-        
-    }
     fn height(&self) -> u16 {
         0
     }
@@ -241,7 +232,7 @@ impl Displayable for Timer {
 
                         }
 
-                    }).join();
+                    }).join().unwrap();
 
                 }
             }
@@ -391,13 +382,9 @@ impl Displayable for Timer {
     fn layout(&self)->Rect {
         self.layout.clone()
     }
-
 }
 
-impl TraitHolder for Timer{}
-
 impl Timer {
-
     pub fn layout(&mut self, x: u16, y: u16, width: u16, height: u16) -> &mut Self{
         let layout = Rect::new(x, y, width, height);
         match compare_rect(&self.frame, &layout){
@@ -432,25 +419,4 @@ impl Timer {
     pub fn get_layout(&mut self) -> Rect {
         self.layout.clone()
     }
-
-    /// manages the time under the timer widget under the focus state
-    /// CURRENTLY UNIMPLEMENTED
-    // only here we can increment the cycle, as the cycle
-    // represent the only the number of the passed working times
-    pub fn manage_focuss(&self, _state: &mut state::State) {}
-
-    /// manages the time under the timer widget under the rest state
-    /// CURRENTLY UNIMPLEMENTED
-    pub fn manage_rest(&self, _state: &mut state::State) {}
-
-}
-
-mod Test{
-
-#[test]
-    /// state_management_test
-    fn state_management_test() {
-        unimplemented!();
-    }
-
 }

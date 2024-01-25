@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 
-
 // desired behavior 
 // let button_hash = HashMap::new();
 // let button_state = State::new(button_has);
@@ -28,15 +27,8 @@ pub struct State{
     pub states: HashMap<String, String>
 }
 
-
 impl State{
-
     pub fn get_states(&self) -> &HashMap<String, String>{
         &self.states
     }
-
-    pub fn new(states: HashMap<String, String>) -> Self{
-        Self { states }
-    }
-
 }
