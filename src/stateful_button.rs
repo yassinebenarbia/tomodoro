@@ -4,14 +4,14 @@ use std::io::{self};
 
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
-use tui::buffer::{Buffer};
+use tui::buffer::Buffer;
 use tui::style::Color;
 use tui::text::{Spans, Span};
 use tui::widgets::{StatefulWidget, BorderType};
 use tui::{
-    style::{Style}, layout::Rect, widgets::{Borders},
+    style::Style, layout::Rect, widgets::Borders,
 };
-use crate::State::State;
+use crate::state::State;
 use crate::app::PHASE;
 use crate::button_widget::ButtonWidget;
 use crate::capabilities::compare_rect;
@@ -26,12 +26,12 @@ use crate::displayable::Displayable;
 ///   A statefull button
 ///   frame: Rect,
 ///   layout: Rect,
-///   widget: Block<'B>,
+///   widget: Block<'b>,
 ///   onhover: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 ///   onclick: Option<Box<dyn FnMut(Rect, &mut Buffer, &mut ButtonState)>>,
 ///   _*warning*_ : this will be removed, and replaced by a cycle
 ///   counter
-pub struct Button<'B> where {
+pub struct Button<'b> where {
     /// frame that constains the button
     pub frame: Rect,
     /// the area in which the button is displayed
@@ -40,14 +40,14 @@ pub struct Button<'B> where {
     ///ToDo: change the name and the type, such that
     ///the new type implements the Widget trait, and can give access to
     ///it's style
-    pub widget: ButtonWidget<'B>,
+    pub widget: ButtonWidget<'b>,
     /// onhover closure, will fier whenever the hovered state of the ButtonState state is true
-    pub onhover: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+    pub onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
     /// onclick closure, will fier whenever the clicked state of the ButtonState state is true
-    pub onclick: Option<Box<&'B mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
+    pub onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
 }
 
-impl<'B> Debug for Button<'B> {
+impl<'b> Debug for Button<'b> {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("frame")
@@ -75,13 +75,10 @@ impl<'B> Debug for Button<'B> {
 //  -----------------
 // The big one is the frame and the smaller is the layout
 
-impl<'B> Default for Button<'B> {
-
+impl<'b> Default for Button<'b> {
     fn default() -> Self {
-
         let backend = CrosstermBackend::new(io::stdout());
         let terminal = Terminal::new(backend).unwrap();
-
         Button{
             frame: terminal.size().unwrap(), 
             layout: Rect::new(1, 1, 1, 1), 
@@ -89,13 +86,10 @@ impl<'B> Default for Button<'B> {
             onhover: None,
             onclick: None,
         }
-
     }
-
 }
 
-impl<'B> StatefulWidget for Button<'B> {
-
+impl<'b> StatefulWidget for Button<'b> {
     type State = State;
 
     fn render(self, area: Rect, buf: &mut tui::buffer::Buffer, state: &mut Self::State){
@@ -170,10 +164,10 @@ impl<'B> StatefulWidget for Button<'B> {
         let clicked = state.states.get("clicked")
             .expect("unable to locate clicked in the button_state state");
 
+        #[allow(unused_assignments)]
         let mut displayed_banner: &String = &String::from("");
 
         unsafe{
-
             if PHASE == "focus" {
                 displayed_banner = state.states.get("focus_banner")
                     .expect("unable to locate the focus_banner in the button_state");
@@ -184,8 +178,6 @@ impl<'B> StatefulWidget for Button<'B> {
                 displayed_banner = state.states.get("pause_banner")
                     .expect("unable to locate the focus_banner in the button_state");
             }
-
-
         }
 
         let focus_banner = Spans::from(vec![
@@ -224,45 +216,23 @@ impl<'B> StatefulWidget for Button<'B> {
         buf.set_spans(banner_x, banner_y, &focus_banner, focus_banner_width);
 
         if clicked.trim().parse::<bool>().unwrap() {
-
             match self.onclick {
                 Some(mut func) =>{
                     func(area, buf, state);
                 }
                 None=>{}
             }
-
             state.states.insert("clicked".to_string(), "false".to_string());
-
         }
-
     }
-
 }
 
-impl<'B> Button<'B>{
-
-    pub fn new<'b, F>(frame: Rect, layout: Rect, widget: ButtonWidget<'b>,
-        onclick: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
-        onhover: Option<Box<&'b mut dyn FnMut(Rect, &mut Buffer, &mut State)>>,
-    )-> Button<'b>{
-
-        match compare_rect(&layout, &frame){
-            Ok(_)=>{
-                Button{frame, layout, widget,  onclick, onhover}
-            },
-            Err(msg)=>{
-                panic!("following erro occured with widget {:?}\n{}", layout, msg)
-            }
-        }
-    }
-
+impl<'b> Button<'b>{
     /// this represent the shape of the button
     pub fn layout(
         &mut self, x: u16, y: u16,
         width: u16, height: u16,
     ) -> &mut Self{
-
         let layout = Rect::new(x, y, width, height);
 
         match compare_rect(&self.frame, &layout){
@@ -274,49 +244,18 @@ impl<'B> Button<'B>{
                 panic!("following erro occured with widget{:?}\n{}", layout, msg)
             }
         }
-
     }
 
     /// this represent the appearence of the widget
     pub fn widget(
-        &mut self, widget: ButtonWidget<'B>
+        &mut self, widget: ButtonWidget<'b>
     ) -> &mut Self{
         self.widget = widget;
         self
     }
 
-    /// sets the widget `style`
-    pub fn style(&mut self, widgetstyle: Style) -> &mut Self{
-        self.widget.style = widgetstyle;
-        self
-    }
-
-    /// sets the text of the widget
-    pub fn text(&mut self, text: String) -> &mut Self {
-        self.widget.title = Some(text.into());
-        self
-    }
-
-    pub fn onclick<T>(& mut self, onclick: &'B mut T) -> &mut Self where
-        T: FnMut(Rect, &mut Buffer, &mut State)
-    {
-        self.onclick = Some(
-            Box::new(onclick)
-        );
-        self
-    }
-
-    pub fn onhover<T>(mut self, onhover: &'B mut T) -> Button<'B> where
-        T: FnMut(Rect, &mut Buffer, &mut State)
-    {
-        self.onhover = Some(
-            Box::new(onhover)
-        );
-        self
-    }
-
     /// returns a clone of the button's widget
-    pub fn get_widget(& self) ->ButtonWidget<'B>{
+    pub fn get_widget(& self) ->ButtonWidget<'b>{
         self.widget.clone()
     }
 
@@ -324,35 +263,14 @@ impl<'B> Button<'B>{
     pub fn get_layout(& self)->Rect{
         self.layout.clone()
     }
-
 }
 
-impl<'B> Displayable for  Button<'B>{
-
-    fn manage_state(&self, _state: &mut crate::State::State) {
-        todo!()
-    }
-
-    fn x(&self) -> u16 {
-        todo!()
-    }
-
-    fn y(&self) -> u16 {
-        todo!()
-    }
-
-    fn width(&self) -> u16 {
-        todo!()
-    }
-    fn height(&self) -> u16 {
-        todo!()
-    }
-    fn highlight(&self) {
+impl<'b> Displayable for  Button<'b>{
+    fn manage_state(&self, _state: &mut crate::state::State) {
         todo!()
     }
 
     fn layout(&self)->Rect {
         self.layout.clone()
     }
-
 }

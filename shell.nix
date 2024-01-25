@@ -1,8 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 pkgs.mkShell
 {
-  nativBuildInputs = with pkgs; [
-    hello
+  nativeBuildInputs = with pkgs; [
     pkg-config
     alsa-lib.dev
   ];
