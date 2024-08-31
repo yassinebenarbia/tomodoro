@@ -15,7 +15,6 @@ mod timer_state;
 mod timer_widget;
 mod button_widget;
 mod stateful_button;
-mod button;
 mod app;
 mod capabilities;
 mod player;
