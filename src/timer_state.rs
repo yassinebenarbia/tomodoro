@@ -2,11 +2,11 @@ use std::time::{Duration, SystemTime};
 
 use crate::frame_util::FrameManager;
 
-/// This resemble the state of the timer, meaning that the behavior 
+/// This resemble the state of the timer, meaning that the behavior
 /// of the shown timer, e.g number of cycles, cycle length, starting time,
 /// the displayed time at the start, etc
 #[derive(Debug, Clone, Copy)]
-pub struct TimerState{
+pub struct TimerState {
     /// the duration for each pomodoro, in seconds unit
     pub duration: Duration,
     /// from where should the pomodor start counting, this is usefull
@@ -25,7 +25,6 @@ pub struct TimerState{
 }
 
 impl Default for TimerState {
-
     fn default() -> Self {
         TimerState {
             duration: Duration::from_secs(1500),
@@ -37,5 +36,4 @@ impl Default for TimerState {
             util: FrameManager::default(),
         }
     }
-
 }

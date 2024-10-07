@@ -1,8 +1,8 @@
 [Timer]
   # widget collor, should be a string
-  color = '#FFAFA0'
+  color = '#000000'
   # widget background color
-  background_color = "#FFFFAA"
+  background_color = "#FAFFAA"
   # widget width, can be an integer or a float between 0 and 1
   width = 1.0
   # widget height, can be an integer or a float between 0 and 1
@@ -16,12 +16,12 @@
   y = 0.3
   # duratoin of the focus cycle in second, should be an integer
   # the duration of the focus state
-  focus_duration = 1500
+  focus_duration = 3000
   # duratoin of the cycle in seconds, should be an integer
   # the duration of the resting state
   rest_duration = 300
   # number of cycles, defaults to infinite and if not declared implicitly
-  max_cycles = 2
+  max_cycles = 6
   # the number of the timer starts from
   cycles = 0
   # path of the audio that will run when the focus phase starts
@@ -50,3 +50,26 @@
   rest_banner = "rest"
   # displayed banner on the pausing state
   pause_banner = "paused"
+
+[Hook]
+# enables using hooks, default to false
+enable = false
+# hook at the focus phase
+[Hook.Focus]
+# enables using hooks on focus phase, defaults to false
+enable = true
+# time when the hook will run, either "start" or "end"
+# for the start and the end of the phase respectively
+# defaults to "end"
+after = "end"
+# path to the hook, the path should be a valid executable bash file
+path = "path/to/file.sh"
+[Hook.Rest]
+# enables using hooks on rest phase, default to false
+enable = false
+# time when the hook will run, either "start" or "end"
+# for the start and the end of the phase respectively
+# defaults to "end"
+after = "start"
+# path to the hook, the path should be a valid executable bash file
+path = "path/to/file.sh"

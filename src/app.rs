@@ -35,12 +35,9 @@ use tui::{
     Frame, Terminal,
 };
 use crate::{
-    commands::{Commands, CommandSetter},
-    screen::Compounder,
-    config::Config, constructor::{
-        self, construct_timer_state, construct_button_state,
-        construct_timer_rect, construct_button_rect
-    },
+    commands::{CommandSetter, Commands}, config::Config, constructor::{
+        self, construct_button_rect, construct_button_state, construct_timer_rect, construct_timer_state
+    }, screen::Compounder
 };
 
 pub static mut COMMAND: Commands = Commands::Start;
@@ -116,7 +113,7 @@ impl App {
                 button,
                 button_layout,
                 state
-                );
+            );
         }
     }
 
@@ -154,7 +151,6 @@ impl App {
                 }
             }
 
-            // avoid overheading the system 
             let timeout = Duration::from_millis(250)
                 .checked_sub(last_tick.elapsed())
                 .unwrap_or_else(|| Duration::from_secs(0));
@@ -180,8 +176,6 @@ impl App {
                 );
             })?;
 
-            // Note: "my cpu is overheating, will remove that after performance
-            // optimization : ("
             thread::sleep(Duration::from_millis(150));
         }
     }

@@ -4,10 +4,6 @@ use serde::{Serialize, Deserialize, de::{self, Visitor}};
 #[derive(Debug, Clone, Copy)]
 pub struct RGB(pub u8, pub u8, pub u8);
 
-//                        Deserialization
-// Toml Representation -------------------> Config Structure Object
-//                        Serialization
-// Toml Representation <------------------- Config Structure Object
 impl Serialize for RGB{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -91,6 +87,23 @@ impl TimerDefaults {
     pub fn cycles()->u8{0}
     pub fn focus_alarm()->String{ String::from("") }
     pub fn rest_alarm()->String{ String::from("") }
+
+    pub fn timer() -> Timer {
+        Timer {
+            color: Self::color(),
+            background_color: Self::background_color(),
+            width: Self::width(),
+            height: Self::height(),
+            x: Self::x(),
+            y: Self::y(),
+            focus_alarm: Self::focus_alarm(),
+            focus_duration: Self::focus_duration(),
+            rest_duration: Self::rest_duration(),
+            max_cycles: Self::max_cycles(),
+            cycles: Self::cycles(),
+            rest_alarm: Self::rest_alarm()
+        } 
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -132,6 +145,19 @@ impl ButtonDefaults {
     fn focus_banner()->String{ String::from("focus") }
     fn rest_banner()->String{ String::from("rest") }
     fn pause_banner()->String{ String::from("pause") }
+    fn button() -> Button {
+        Button {
+            color: Self::color(),
+            background_color: Self::background_color(),
+            width: Self::width(),
+            height: Self::height(),
+            x: Self::x(),
+            y: Self::y(),
+            focus_banner: Self::focus_banner(),
+            rest_banner: Self::rest_banner(),
+            pause_banner: Self::pause_banner(),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -156,23 +182,90 @@ pub struct Button{
     pub pause_banner: String,
 }
 
+
+struct HookDefaults;
+impl HookDefaults {
+    fn after() -> After { After::default() }
+    fn enable() -> bool { false }
+    fn path () -> std::path::PathBuf { std::path::PathBuf::new() }
+    fn hook() -> Hook { Hook::default() }
+    fn focus_hook() -> FocusHook { FocusHook::default() }
+    fn rest_hook() -> RestHook { RestHook::default() }
+}
+
+struct FocusHookDefaults;
+impl FocusHookDefaults {
+    fn after() -> After { After::default() }
+    fn path() -> std::path::PathBuf { std::path::PathBuf::new() }
+    fn hook() -> Hook { Hook::default() }
+}
+
+struct RestHookDefaults;
+impl RestHookDefaults {
+    fn after() -> After { After::default() }
+    fn path() -> std::path::PathBuf { std::path::PathBuf::new() }
+    fn hook() -> Hook { Hook::default() }
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub enum After {
+    #[serde(rename = "start")]
+    Start,
+    #[default]
+    #[serde(rename = "end")]
+    End
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct FocusHook {
+    #[serde(default = "HookDefaults::enable")]
+    pub enable: bool,
+    #[serde(default = "HookDefaults::after")]
+    pub after: After,
+    #[serde(default = "HookDefaults::path")]
+    pub path: std::path::PathBuf
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct RestHook {
+    #[serde(default = "HookDefaults::enable")]
+    pub enable: bool,
+    #[serde(default = "HookDefaults::after")]
+    pub after: After,
+    #[serde(default = "HookDefaults::path")]
+    pub path: std::path::PathBuf
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct Hook {
+    #[serde(default = "HookDefaults::enable")]
+    pub enable: bool,
+    #[serde(default = "HookDefaults::focus_hook", rename = "Focus")]
+    pub focus_hook: FocusHook,
+    #[serde(default = "HookDefaults::rest_hook", rename = "Rest")]
+    pub rest_hook: RestHook 
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
-    #[serde(rename = "Button")]
+    #[serde(rename = "Button", default = "ButtonDefaults::button")]
     pub button: Button,
-    #[serde(rename = "Timer")]
+    #[serde(rename = "Timer", default = "TimerDefaults::timer")]
     pub timer: Timer,
+    #[serde(rename = "Hook", default = "HookDefaults::hook")]
+    pub hook: Hook
 }
 
 impl Config {
-
     /// this will
     /// 1) read the config path env variable
-    /// 2) check for the default file name 
+    /// 2) check for the default file name
     /// 3) deserialize the file 
-    pub fn read() -> Config{
+    pub fn read() -> Config {
         // reading the env variable for the config path
-        let env = std::env::var("TOMODORO_PATH").unwrap();
+        let env: String = std::env::var("TOMODORO_PATH").or(
+            Ok::<String, String>(std::env::current_dir().unwrap().to_string_lossy().to_string())
+        ).unwrap();
 
         // stands for string config
         let sconfig = fs::read_to_string(env.clone()+"/tomodoro.toml").unwrap();

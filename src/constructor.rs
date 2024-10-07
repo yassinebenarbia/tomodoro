@@ -51,9 +51,7 @@ pub fn construct_timer(term: &mut Terminal<CrosstermBackend<Stdout>>, config: &C
 
 /// Constructs the `StatefullButton` widget based on the `Values` provided on the `values` parameter.
 /// returns a `StatefullButton`
-pub fn construct_button<'b>(term: &mut Terminal<CrosstermBackend<Stdout>>, config: &Config)
-    -> Button<'b>
-{
+pub fn construct_button<'b>(term: &mut Terminal<CrosstermBackend<Stdout>>, config: &Config) -> Button<'b> {
 
     let mut toreturn = Button::default();
     let button = config.button.clone();
@@ -85,10 +83,13 @@ pub fn construct_button<'b>(term: &mut Terminal<CrosstermBackend<Stdout>>, confi
 
 }
 
+// TODO: remove store state on a struct, the HashMap sucks!
+// TODO: add support of the working state for the config file
+// TODO: make all to_string a format!
 /// construcuts `State` from the `values` paramater, or in another word
 /// from the config file
 /// This state is specifically desined for the `Timer` widget
-pub fn construct_timer_state(conf:& Config, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State{
+pub fn construct_timer_state(conf:& Config, _term: &mut Terminal<CrosstermBackend<Stdout>>) -> State {
 
     let mut state = State::default();
     let mut timer_hashmap = HashMap::new();
@@ -107,7 +108,13 @@ pub fn construct_timer_state(conf:& Config, _term: &mut Terminal<CrosstermBacken
     timer_hashmap.insert("rest_alarm".to_string(), conf.timer.rest_alarm.to_string());
     
 
-    // TODO add support of the working state for the config file
+    timer_hashmap.insert("hook.enable".to_string(), conf.hook.enable.to_string());
+    timer_hashmap.insert("hook.focus.enable".to_string(), conf.hook.focus_hook.enable.to_string());
+    timer_hashmap.insert("hook.focus.after".to_string(), format!("{:?}", conf.hook.focus_hook.after));
+    timer_hashmap.insert("hook.focus.path".to_string(), conf.hook.focus_hook.path.to_string_lossy().to_string());
+    timer_hashmap.insert("hook.rest.enable".to_string(), conf.hook.rest_hook.enable.to_string());
+    timer_hashmap.insert("hook.rest.after".to_string(), format!("{:?}", conf.hook.rest_hook.after));
+    timer_hashmap.insert("hook.rest.path".to_string(), conf.hook.rest_hook.path.to_string_lossy().to_string());
 
     state.states = timer_hashmap;
     state

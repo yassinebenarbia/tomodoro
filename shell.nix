@@ -4,6 +4,7 @@ pkgs.mkShell
   nativeBuildInputs = with pkgs; [
     pkg-config
     alsa-lib.dev
+    rustfmt
   ];
   shellHook = ''
   echo "Hello, wellcome to your custom development shell"
